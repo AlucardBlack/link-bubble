@@ -234,7 +234,7 @@ public class PageInspector {
                 }
                 sTouchIconTransformation.setListener(mOnItemFoundListener);
                 sTouchIconTransformation.mTouchIconPageUrl = mWebViewUrl;
-                Picasso.with(mContext).load(touchIconEntry.mUrl.toString()).transform(sTouchIconTransformation).fetch();
+                Picasso.get().load(touchIconEntry.mUrl.toString()).transform(sTouchIconTransformation).fetch();
             }
 
         }

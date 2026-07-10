@@ -27,7 +27,6 @@ import android.support.v4.app.NotificationCompat;
 import android.webkit.WebView;
 import android.widget.Toast;
 
-import com.crashlytics.android.Crashlytics;
 import com.linkbubble.Constant.BubbleAction;
 import com.linkbubble.adblock.ABPFilterParser;
 import com.linkbubble.adblock.TPFilterParser;
@@ -49,7 +48,6 @@ import com.linkbubble.util.Util;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 
-import io.fabric.sdk.android.Fabric;
 import org.mozilla.gecko.favicons.Favicons;
 
 import java.net.MalformedURLException;
@@ -84,7 +82,6 @@ public class MainApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        Fabric.with(this, new Crashlytics());
 
         mBus = new Bus();
 

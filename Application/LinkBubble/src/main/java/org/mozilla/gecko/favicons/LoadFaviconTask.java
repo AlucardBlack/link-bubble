@@ -6,24 +6,19 @@ package org.mozilla.gecko.favicons;
 
 
 import android.graphics.Bitmap;
-import android.net.http.AndroidHttpClient;
 import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Log;
 import com.linkbubble.MainApplication;
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.entity.BufferedHttpEntity;
 import org.mozilla.gecko.gfx.BitmapUtils;
-import org.mozilla.gecko.util.ThreadUtils;
 import org.mozilla.gecko.util.UiAsyncTask;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -61,9 +56,6 @@ public class LoadFaviconTask extends UiAsyncTask<Void, Void, Bitmap> {
     protected int mTargetWidth;
     private LinkedList<LoadFaviconTask> mChainees;
     private boolean mIsChaining;
-
-    // LB_CHANGE: static AndroidHttpClient sHttpClient = AndroidHttpClient.newInstance(GeckoAppShell.getGeckoInterface().getDefaultUAString());
-    static AndroidHttpClient sHttpClient = AndroidHttpClient.newInstance(System.getProperty("http.agent"));
 
     public LoadFaviconTask(Handler backgroundThreadHandler,
                            Favicons favicons, String pageUrl, String faviconUrl, int flags,
@@ -106,62 +98,58 @@ public class LoadFaviconTask extends UiAsyncTask<Void, Void, Bitmap> {
     /**
      * Helper method for trying the download request to grab a Favicon.
      * @param faviconURI URL of Favicon to try and download
-     * @return The HttpResponse containing the downloaded Favicon if successful, null otherwise.
+     * @return The HttpURLConnection containing the downloaded Favicon if successful, null otherwise.
      */
-    private HttpResponse tryDownload(URI faviconURI) throws URISyntaxException, IOException {
+    private HttpURLConnection tryDownload(URI faviconURI) throws URISyntaxException, IOException {
         HashSet<String> visitedLinkSet = new HashSet<String>();
         visitedLinkSet.add(faviconURI.toString());
         return tryDownloadRecurse(faviconURI, visitedLinkSet);
     }
-    private HttpResponse tryDownloadRecurse(URI faviconURI, HashSet<String> visited) throws URISyntaxException, IOException {
+    private HttpURLConnection tryDownloadRecurse(URI faviconURI, HashSet<String> visited) throws URISyntaxException, IOException {
         if (visited.size() == MAX_REDIRECTS_TO_FOLLOW) {
             return null;
         }
 
-        HttpGet request = new HttpGet(faviconURI);
-        HttpResponse response = sHttpClient.execute(request);
-        if (response == null) {
+        URL url = faviconURI.toURL();
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setInstanceFollowRedirects(false);
+        connection.setRequestProperty("User-Agent", System.getProperty("http.agent"));
+        connection.connect();
+
+        // Was the response a failure?
+        int status = connection.getResponseCode();
+
+        // Handle HTTP status codes requesting a redirect.
+        if (status >= 300 && status < 400) {
+            String newURI = connection.getHeaderField("Location");
+            connection.disconnect();
+
+            // Handle mad webservers.
+            if (newURI == null || newURI.equals(faviconURI.toString())) {
+                return null;
+            }
+
+            if (visited.contains(newURI)) {
+                // Already been redirected here - abort.
+                return null;
+            }
+
+            visited.add(newURI);
+
+            // Sometimes newURI is a value like "/fb/images/favicon.ico" (with no host). In which case, ignore... See #231
+            URI uri = new URI(newURI);
+            if (uri.getHost() != null) {
+                return tryDownloadRecurse(uri, visited);
+            }
             return null;
         }
 
-        if (response.getStatusLine() != null) {
-
-            // Was the response a failure?
-            int status = response.getStatusLine().getStatusCode();
-
-            // Handle HTTP status codes requesting a redirect.
-            if (status >= 300 && status < 400) {
-                Header header = response.getFirstHeader("Location");
-
-                // Handle mad webservers.
-                if (header == null) {
-                    return null;
-                }
-
-                String newURI = header.getValue();
-                if (newURI == null || newURI.equals(faviconURI.toString())) {
-                    return null;
-                }
-
-                if (visited.contains(newURI)) {
-                    // Already been redirected here - abort.
-                    return null;
-                }
-
-                visited.add(newURI);
-
-                // Sometimes newURI is a value like "/fb/images/favicon.ico" (with no host). In which case, ignore... See #231
-                URI uri = new URI(newURI);
-                if (uri.getHost() != null) {
-                    return tryDownloadRecurse(uri, visited);
-                }
-            }
-
-            if (status >= 400) {
-                return null;
-            }
+        if (status >= 400) {
+            connection.disconnect();
+            return null;
         }
-        return response;
+
+        return connection;
     }
 
     /**
@@ -201,33 +189,26 @@ public class LoadFaviconTask extends UiAsyncTask<Void, Void, Bitmap> {
 
         Bitmap image = null;
 
-        // skia decoder sometimes returns null; workaround is to use BufferedHttpEntity
-        // http://groups.google.com/group/android-developers/browse_thread/thread/171b8bf35dbbed96/c3ec5f45436ceec8?lnk=raot
+        HttpURLConnection connection = null;
         try {
             // Try the URL we were given.
-            HttpResponse response = tryDownload(targetFaviconURI);
-            if (response == null) {
+            connection = tryDownload(targetFaviconURI);
+            if (connection == null) {
                 return null;
             }
 
-            HttpEntity entity = response.getEntity();
-            if (entity == null) {
-                return null;
-            }
-
-            BufferedHttpEntity bufferedEntity = new BufferedHttpEntity(entity);
-            InputStream contentStream = null;
+            InputStream contentStream = connection.getInputStream();
             try {
-                contentStream = bufferedEntity.getContent();
                 image = BitmapUtils.decodeStream(contentStream);
-                contentStream.close();
             } finally {
-                if (contentStream != null) {
-                    contentStream.close();
-                }
+                contentStream.close();
             }
         } catch (Exception e) {
             Log.e(LOGTAG, "Error reading favicon", e);
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
         }
 
         return image;
@@ -467,21 +448,6 @@ public class LoadFaviconTask extends UiAsyncTask<Void, Void, Bitmap> {
     }
 
     static void closeHTTPClient() {
-        // This work must be done on a background thread because it shuts down
-        // the connection pool, which typically involves closing a connection --
-        // which counts as network activity.
-        if (ThreadUtils.isOnBackgroundThread()) {
-            if (sHttpClient != null) {
-                sHttpClient.close();
-            }
-            return;
-        }
-
-        ThreadUtils.postToBackgroundThread(new Runnable() {
-            @Override
-            public void run() {
-                LoadFaviconTask.closeHTTPClient();
-            }
-        });
+        // No-op: HttpURLConnection has no persistent connection pool to close.
     }
 }

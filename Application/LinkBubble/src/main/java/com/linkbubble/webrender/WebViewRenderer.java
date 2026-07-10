@@ -181,7 +181,6 @@ class WebViewRenderer extends WebRenderer {
     public void updateIncognitoMode(boolean incognito) {
         if (incognito) {
             mWebView.getSettings().setCacheMode(mWebView.getSettings().LOAD_NO_CACHE);
-            mWebView.getSettings().setAppCacheEnabled(false);
             mWebView.clearHistory();
             mWebView.clearCache(true);
 
@@ -189,7 +188,6 @@ class WebViewRenderer extends WebRenderer {
             mWebView.getSettings().setSaveFormData(false);
         } else {
             mWebView.getSettings().setCacheMode(mWebView.getSettings().LOAD_DEFAULT);
-            mWebView.getSettings().setAppCacheEnabled(true);
 
             mWebView.getSettings().setSaveFormData(true);
         }
