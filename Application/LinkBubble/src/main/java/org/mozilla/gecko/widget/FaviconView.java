@@ -10,7 +10,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.RectF;
-import android.support.v7.graphics.Palette;
+import androidx.palette.graphics.Palette;
 import android.util.AttributeSet;
 import android.widget.ImageView;
 import com.linkbubble.Constant;

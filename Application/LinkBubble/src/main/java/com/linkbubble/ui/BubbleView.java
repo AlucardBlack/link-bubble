@@ -8,7 +8,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.support.v7.graphics.Palette;
+import androidx.palette.graphics.Palette;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.widget.FrameLayout;

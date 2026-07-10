@@ -51,11 +51,9 @@ public class Analytics {
     public static final String UPGRADE_PROMPT_SINGLE_TAB_REDIRECT = "single_tab_redirect";
 
     public static void trackUpgradePromptDisplayed(String promptType) {
-        StatHat.get().ezPostCount("upgrade_prompt_displayed~" + promptType, 1);
     }
 
     public static void trackUpgradePromptClicked(String promptType) {
-        StatHat.get().ezPostCount("upgrade_prompt_clicked~" + promptType, 1);
     }
 
     public static void trackScreenView(String screenName) {

@@ -5,7 +5,7 @@
 
 package org.mozilla.gecko.util;
 
-import android.support.v4.util.LruCache;
+import androidx.collection.LruCache;
 
 import java.util.concurrent.ConcurrentHashMap;
 
