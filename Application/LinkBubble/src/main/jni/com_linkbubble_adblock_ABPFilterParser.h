@@ -11,11 +11,11 @@ extern "C" {
 
 /*
  * Class:     com_linkbubble_adblock_ABPFilterParser
- * Method:    init
- * Signature: ()Ljava/lang/void;
+ * Method:    parseList
+ * Signature: (Ljava/lang/String;)V
  */
-JNIEXPORT void JNICALL Java_com_linkbubble_adblock_ABPFilterParser_init
-  (JNIEnv *, jobject, jbyteArray);
+JNIEXPORT void JNICALL Java_com_linkbubble_adblock_ABPFilterParser_parseList
+  (JNIEnv *, jobject, jstring);
 
 /*
  * Class:     com_linkbubble_adblock_ABPFilterParser

@@ -411,7 +411,7 @@ public class MainController implements Choreographer.FrameCallback {
             mWindowManagerParams.y = 16;
             mWindowManagerParams.height = WindowManager.LayoutParams.WRAP_CONTENT;
             mWindowManagerParams.width = WindowManager.LayoutParams.WRAP_CONTENT;
-            mWindowManagerParams.type = WindowManager.LayoutParams.TYPE_PHONE;
+            mWindowManagerParams.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
             mWindowManagerParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED;
             mWindowManagerParams.format = PixelFormat.TRANSPARENT;
             mWindowManagerParams.setTitle("LinkBubble: Debug Text");
@@ -1010,7 +1010,7 @@ public class MainController implements Choreographer.FrameCallback {
                 }
             });
 
-            dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+            dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
             Util.showThemedDialog(dialog);
             MainApplication.sShowingAppPickerDialog = true;
         }

@@ -43,7 +43,6 @@ import java.util.Vector;
 public class Settings {
 
     public static final String PREFERENCE_ENABLED = "preference_enabled";
-    public static final String PREFERENCE_CHECK_FOR_YOUTUBE_EMBEDS = "preference_scan_for_youtube_embeds";
     public static final String PREFERENCE_IGNORE_LINKS_FROM = "preference_ignore_links_from";
 
     public static final String PREFERENCE_AUTO_CONTENT_DISPLAY_LINK_LOADED = "preference_auto_content_display_link_loaded";
@@ -89,10 +88,8 @@ public class Settings {
     public static final String PREFERENCE_HIDE_BUBBLES = "preference_hide_bubbles";
 
     public static final String PREFERENCE_WEBVIEW_BATTERY_SAVING_MODE = "preference_webview_battery_save_v2";
-    public static final String PREFERENCE_TRACKINGPROTECTION_MODE = "preference_trackingprotection";
     public static final String PREFERENCE_ADBLOCK_MODE = "preference_adblock";
     public static final String PREFERENCE_BLOCK_3P_COOKIES = "preference_block_3p";
-    public static final String PREFERENCE_HTTPS_EVERYWHERE_MODE = "preference_httpseverywhere";
 
     public static final String PREFERENCE_WEBVIEW_TEXT_ZOOM = "preference_webview_text_zoom2";
     public static final int     PREFERENCE_WEBVIEW_TEXT_ZOOM_MIN = 50;
@@ -157,9 +154,7 @@ public class Settings {
     private TreeMap<String, String> mDefaultAppsMap = new TreeMap<String, String>();
     private List<Intent> mBrowsers;
     private List<String> mBrowserPackageNames;
-    private ResolveInfo mYouTubeViewResolveInfo;
     public ResolveInfo mLinkBubbleEntryActivityResolveInfo;
-    private boolean mCheckedForYouTubeResolveInfo = false;
     private List<String> mIgnoreLinksFromPackageNames;
     private WebViewBatterySaveMode mWebViewBatterySaveMode;
     // The point to save
@@ -442,25 +437,6 @@ public class Settings {
         }
 
         return null;
-    }
-
-    public ResolveInfo getYouTubeViewResolveInfo() {
-        if (mCheckedForYouTubeResolveInfo == false) {
-            PackageManager packageManager = mContext.getPackageManager();
-            Intent queryIntent = new Intent();
-            queryIntent.setAction(Intent.ACTION_VIEW);
-            queryIntent.setData(Uri.parse("http://www.youtube.com/watch?v=jNQXAC9IVRw"));
-            List<ResolveInfo> resolveInfos = packageManager.queryIntentActivities(queryIntent, PackageManager.GET_RESOLVED_FILTER);
-            for (ResolveInfo resolveInfo : resolveInfos) {
-                if (resolveInfo.activityInfo != null && resolveInfo.activityInfo.packageName.contains("com.google.android.youtube")) {
-                    mYouTubeViewResolveInfo = resolveInfo;
-                    break;
-                }
-            }
-            mCheckedForYouTubeResolveInfo = true;
-        }
-
-        return mYouTubeViewResolveInfo;
     }
 
     private void setDefaultRightConsumeBubble() {
@@ -758,20 +734,12 @@ public class Settings {
         return mSharedPreferences.getBoolean(PREFERENCE_HIDE_BUBBLES, true);
     }
 
-    public boolean isTrackingProtectionEnabled() {
-        return mSharedPreferences.getBoolean(PREFERENCE_TRACKINGPROTECTION_MODE, true);
-    }
-
     public boolean isAdBlockEnabled() {
         return mSharedPreferences.getBoolean(PREFERENCE_ADBLOCK_MODE, true);
     }
 
     public boolean isBlock3PCookiesEnabled() {
         return mSharedPreferences.getBoolean(PREFERENCE_BLOCK_3P_COOKIES, true);
-    }
-
-    public boolean isHttpsEverywhereEnabled() {
-        return mSharedPreferences.getBoolean(PREFERENCE_HTTPS_EVERYWHERE_MODE, false);
     }
 
     public void setWebViewBatterySaveMode(String mode) {
@@ -828,10 +796,6 @@ public class Settings {
     public boolean isEnabled() {
         //return mSharedPreferences.getBoolean(PREFERENCE_ENABLED, false);
         return true;
-    }
-
-    public boolean checkForYouTubeEmbeds() {
-        return mSharedPreferences.getBoolean(PREFERENCE_CHECK_FOR_YOUTUBE_EMBEDS, false);
     }
 
     public boolean getSayThanksClicked() {

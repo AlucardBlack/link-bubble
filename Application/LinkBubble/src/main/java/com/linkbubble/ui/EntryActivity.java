@@ -5,17 +5,12 @@
 package com.linkbubble.ui;
 
 import android.app.Activity;
-import android.app.ActivityManager;
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.widget.Toast;
 
-import com.linkbubble.BuildConfig;
 import com.linkbubble.Config;
 import com.linkbubble.Constant;
 import com.linkbubble.MainApplication;
@@ -26,7 +21,6 @@ import com.linkbubble.util.CrashTracking;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.List;
 
 public class EntryActivity extends Activity {
 
@@ -93,27 +87,7 @@ public class EntryActivity extends Activity {
             String openedFromAppName = null;
             boolean canLoadFromThisApp = true;
             if (Settings.get().isEnabled()) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    openLink = true;
-                } else {
-                    final ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-                    List<ActivityManager.RecentTaskInfo> recentTasks = activityManager.getRecentTasks(16, ActivityManager.RECENT_WITH_EXCLUDED);
-                    if (recentTasks.size() > 0) {
-                        ActivityManager.RecentTaskInfo recentTaskInfo = getPreviousTaskInfo(recentTasks);
-                        if (recentTaskInfo != null) {
-                            ComponentName componentName = recentTaskInfo.baseIntent.getComponent();
-                            openedFromAppName = componentName.getPackageName();
-
-                            if (url.equals(Constant.TERMS_OF_SERVICE_URL)
-                                    || url.equals(Constant.PRIVACY_POLICY_URL)
-                                    || !Settings.get().ignoreLinkFromPackageName(componentName.getPackageName())) {
-                                openLink = true;
-                            }
-                        } else {
-                            openLink = true;
-                        }
-                    }
-                }
+                openLink = true;
             }
 
             if (canLoadFromThisApp == false) {
@@ -138,24 +112,6 @@ public class EntryActivity extends Activity {
         }
 
         finish();
-    }
-
-    /*
-     * Get the most recent RecentTaskInfo, but ensure the result is not Link Bubble.
-     */
-    ActivityManager.RecentTaskInfo getPreviousTaskInfo(List<ActivityManager.RecentTaskInfo> recentTasks) {
-        for (int i = 0; i < recentTasks.size(); i++) {
-            ActivityManager.RecentTaskInfo recentTaskInfo = recentTasks.get(i);
-            if (recentTaskInfo.baseIntent != null
-                    && recentTaskInfo.baseIntent.getComponent() != null) {
-                String packageName = recentTaskInfo.baseIntent.getComponent().getPackageName();
-                if (packageName.equals("android") == false && packageName.equals(BuildConfig.APPLICATION_ID) == false) {
-                    return recentTaskInfo;
-                }
-            }
-        }
-
-        return null;
     }
 
     @Override

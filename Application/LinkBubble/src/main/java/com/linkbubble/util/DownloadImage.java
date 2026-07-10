@@ -4,18 +4,29 @@
 
 package com.linkbubble.util;
 
+import android.Manifest;
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.util.Base64;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
 import android.webkit.URLUtil;
 import android.widget.Toast;
 
+import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
+
+import com.linkbubble.BuildConfig;
 import com.linkbubble.MainController;
 import com.linkbubble.R;
 import com.linkbubble.ui.Prompt;
@@ -25,6 +36,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URL;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -42,6 +54,13 @@ public class DownloadImage {
     }
 
     public void download() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q
+                && ContextCompat.checkSelfPermission(mContext, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                        != PackageManager.PERMISSION_GRANTED) {
+            showErrorPrompt();
+            return;
+        }
+
         Log.d(TAG, "downloading image: " + mUrlAsString);
         Toast.makeText(mContext, R.string.notice_download_started, Toast.LENGTH_LONG).show();
         new DownloadImageTask().execute(mUrlAsString);
@@ -72,7 +91,7 @@ public class DownloadImage {
                         Intent intent = new Intent();
                         intent.setAction(Intent.ACTION_VIEW);
                         intent.setDataAndType(imageUri, "image/*");
-                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_GRANT_READ_URI_PERMISSION);
                         mContext.startActivity(intent);
                         MainController.get().switchToBubbleView(false);
                     }
@@ -84,12 +103,12 @@ public class DownloadImage {
 
     }
 
-    private class DownloadImageTask extends AsyncTask<String, Integer, Boolean> {
-        File imagePath;
-        protected Boolean doInBackground(String... urls) {
+    private class DownloadImageTask extends AsyncTask<String, Integer, Uri> {
+        protected Uri doInBackground(String... urls) {
             try {
-                String fileExtenstion;
+                String fileExtension;
                 String name;
+                String mimeType = "image/jpeg";
                 String sUrl = urls[0];
                 byte[] buffer;
                 ByteArrayOutputStream output = new ByteArrayOutputStream();
@@ -106,6 +125,7 @@ public class DownloadImage {
                         Matcher matcher = pattern.matcher(parts[0]);
                         matcher.find();
                         extension = matcher.group(1);
+                        mimeType = "image/" + extension;
                     }
                     name = "dataimage" + extension;
 
@@ -121,8 +141,14 @@ public class DownloadImage {
 
                 } else {
                     // For a normal image download we just read the image from the URL.
-                    fileExtenstion = MimeTypeMap.getFileExtensionFromUrl(sUrl);
-                    name = URLUtil.guessFileName(sUrl, null, fileExtenstion);
+                    fileExtension = MimeTypeMap.getFileExtensionFromUrl(sUrl);
+                    name = URLUtil.guessFileName(sUrl, null, fileExtension);
+                    if (fileExtension != null) {
+                        String guessedMimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(fileExtension);
+                        if (guessedMimeType != null) {
+                            mimeType = guessedMimeType;
+                        }
+                    }
 
                     URL url = new URL(sUrl);
                     InputStream is = (InputStream) url.getContent();
@@ -134,35 +160,65 @@ public class DownloadImage {
                     output.close();
                 }
 
-                File path = Environment.getExternalStoragePublicDirectory(
-                        Environment.DIRECTORY_DOWNLOADS);
-
                 // Prefix the filename with the date to attempt to prevent overwriting of existing files.
                 name = System.currentTimeMillis() + name;
 
-                imagePath = new File(path, name);
-                FileOutputStream fos = new FileOutputStream(imagePath);
-                fos.write(output.toByteArray());
-                fos.flush();
-                fos.close();
-                return true;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    return saveViaMediaStore(name, mimeType, output);
+                } else {
+                    return saveToLegacyDownloadsDir(name, output);
+                }
             } catch (IOException e) {
                 CrashTracking.log(e.getMessage());
-                return false;
+                return null;
             }
+        }
+
+        private Uri saveViaMediaStore(String name, String mimeType, ByteArrayOutputStream output) throws IOException {
+            ContentResolver resolver = mContext.getContentResolver();
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.Images.Media.DISPLAY_NAME, name);
+            values.put(MediaStore.Images.Media.MIME_TYPE, mimeType);
+            values.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
+
+            Uri collection = MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
+            Uri itemUri = resolver.insert(collection, values);
+            if (itemUri == null) {
+                return null;
+            }
+
+            OutputStream os = resolver.openOutputStream(itemUri);
+            if (os == null) {
+                return null;
+            }
+            os.write(output.toByteArray());
+            os.flush();
+            os.close();
+
+            return itemUri;
+        }
+
+        private Uri saveToLegacyDownloadsDir(String name, ByteArrayOutputStream output) throws IOException {
+            File path = Environment.getExternalStoragePublicDirectory(
+                    Environment.DIRECTORY_DOWNLOADS);
+
+            File imageFile = new File(path, name);
+            FileOutputStream fos = new FileOutputStream(imageFile);
+            fos.write(output.toByteArray());
+            fos.flush();
+            fos.close();
+
+            MediaScannerConnection.scanFile(mContext, new String[]{imageFile.getAbsolutePath()}, null, null);
+
+            return FileProvider.getUriForFile(mContext, BuildConfig.APPLICATION_ID + ".fileprovider", imageFile);
         }
 
         protected void onProgressUpdate(Integer... progress) {
         }
 
-        protected void onPostExecute(Boolean result) {
-            if (result) {
-                // Fire an intent to scan for the gallery.
-                Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-                Uri contentUri = Uri.fromFile(imagePath);
-                mediaScanIntent.setData(contentUri);
-                mContext.sendBroadcast(mediaScanIntent);
-                showSuccessPrompt(contentUri);
+        protected void onPostExecute(Uri result) {
+            if (result != null) {
+                showSuccessPrompt(result);
             } else {
                 showErrorPrompt();
             }

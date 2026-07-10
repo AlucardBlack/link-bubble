@@ -110,7 +110,7 @@ public class BubbleFlowDraggable extends BubbleFlowView implements Draggable {
         windowManagerParams.y = 0;
         windowManagerParams.height = mBubbleFlowHeight;
         windowManagerParams.width = mBubbleFlowWidth;
-        windowManagerParams.type = WindowManager.LayoutParams.TYPE_SYSTEM_ALERT;
+        windowManagerParams.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
         windowManagerParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS | WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED;
         windowManagerParams.format = PixelFormat.TRANSPARENT;
         windowManagerParams.setTitle("LinkBubble: BubbleFlowView");

@@ -131,15 +131,10 @@
     <string name="preference_hide_bubbles_title">Hide Bubbles on scroll</string>
     <string name="preference_hide_bubbles_summary">Hide Bubbles on scroll down and show on scroll up</string>
     <string name="incognito_mode_changed_reloading_current">Incognito setting changed. Reloading current bubbles…</string>
-    <string name="preference_trackingprotection_summary">Prevent resources that track you from loading</string>
     <string name="preference_adblock_title">Ad Block</string>
     <string name="preference_adblock_summary">Prevent ads from loading</string>
     <string name="preference_block_3p_cookies_title">Block Third Party Cookies</string>
     <string name="preference_block_3p_cookies_summary">Stops some types of tracking by advertisers</string>
-    <string name="preference_trackingprotection_title">Tracking Protection Mode</string>
-    <string name="preference_adblock_tracking_protection_from_disabled">This feature is only available from Android 5.0 and higher.</string>
-    <string name="preference_https_everywhere_title">HTTPS Everywhere</string>
-    <string name="preference_https_everywhere_summary">Opens supported sites using HTTPS instead of HTTP when possible</string>
     <string name="preference_user_agent_title">User Agent</string>
     <string-array name="preference_user_agent_options">
         <item>Default</item>
@@ -337,8 +332,6 @@
     <string name="content_description_settings">Settings</string>
     <string name="content_description_can_go_back">Can go back</string>
 
-    <string name="requesting_location_message">%1$s is requesting your location. Allow?</string>
-
     <string name="accept_terms_and_privacy"><![CDATA[By continuing, you acknowledge that you accept the Link Bubble
     <a href="https://brave.com/terms_of_use">terms</a> and <a href="https://brave.com/privacy_android">privacy policy</a>.]]></string>
 
@@ -393,18 +386,15 @@
     <string name="yahoo">Yahoo</string>
     <string name="amazon">Amazon</string>
     <string name="empty_bubble_page">file:///android_asset/blank.html</string>
-    <string name="adblock_url">https://s3.amazonaws.com/adblock-data/2/ABPFilterParserData.dat</string>
-    <string name="adblock_localfilename">FromUrlABPFilterParserData.dat</string>
-    <string name="tracking_protection_url">https://s3.amazonaws.com/tracking-protection-data/1/TrackingProtection.dat</string>
-    <string name="tracking_protection_localfilename">TrackingProtection.dat</string>
-    <string name="https_everywhere_rulesets_url">https://s3.amazonaws.com/https-everywhere-data/5.1.2/rulesets.sqlite</string>
-    <string name="https_everywhere_targets_url">https://s3.amazonaws.com/https-everywhere-data/5.1.2/httpse-targets.json</string>
-    <string name="https_everywhere_rulesets_localfilename">rulesets.sqlite</string>
-    <string name="https_everywhere_targets_localfilename">httpse-targets.json</string>
+    <string name="adblock_url">https://easylist.to/easylist/easylist.txt</string>
+    <string name="adblock_localfilename">easylist.txt</string>
     <string name="whitelist_localfilename">whitelist.dat</string>
     <string name="tab_based_browser_id_name">com.brave.browser</string>
     <string name="tab_based_browser_name">Brave</string>
     <string name="tab_based_browser_notification_title">Try the New Brave Browser!</string>
     <string name="tab_based_browser_notification_text">Tabs, shields, ad blocking, customization and more!</string>
+
+    <string name="grant_overlay_permission_message">Link Bubble needs permission to display over other apps to show the bubble. Tap below to grant it.</string>
+    <string name="grant_overlay_permission_button">Open Settings</string>
 
 </resources>

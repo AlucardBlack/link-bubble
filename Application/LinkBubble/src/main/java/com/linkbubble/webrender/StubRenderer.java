@@ -8,7 +8,6 @@ import android.content.Context;
 import android.view.View;
 
 import com.linkbubble.util.Util;
-import com.linkbubble.util.YouTubeEmbedHelper;
 
 import java.net.URL;
 
@@ -73,11 +72,6 @@ class StubRenderer extends WebRenderer {
     @Override
     public void pauseOnSetInactive() {
 
-    }
-
-    @Override
-    public YouTubeEmbedHelper getPageInspectorYouTubeEmbedHelper() {
-        return null;
     }
 
     @Override

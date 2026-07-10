@@ -11,9 +11,6 @@ add_library(LinkBubble SHARED
     BloomFilter.cpp
     hashFn.cpp
     HashSet.cpp
-    TPParser.cpp
-    TrackerData.cpp
-    FirstPartyHost.cpp
 )
 
 target_include_directories(LinkBubble PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})

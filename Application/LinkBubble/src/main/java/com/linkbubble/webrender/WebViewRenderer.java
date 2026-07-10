@@ -27,7 +27,6 @@ import android.view.WindowManager;
 import android.webkit.ConsoleMessage;
 import android.webkit.CookieManager;
 import android.webkit.DownloadListener;
-import android.webkit.GeolocationPermissions;
 import android.webkit.JsPromptResult;
 import android.webkit.JsResult;
 import android.webkit.SslErrorHandler;
@@ -54,12 +53,8 @@ import com.linkbubble.util.NetworkConnectivity;
 import com.linkbubble.util.NetworkReceiver;
 import com.linkbubble.util.PageInspector;
 import com.linkbubble.util.Util;
-import com.linkbubble.util.YouTubeEmbedHelper;
 import com.squareup.otto.Subscribe;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
@@ -84,9 +79,7 @@ class WebViewRenderer extends WebRenderer {
     private boolean mPauseOnComplete;
     private Boolean mIsDestroyed = false;
     private boolean mRegisteredForBus;
-    private boolean mTrackingProtectionEnabled = false;
     private boolean mAdblockEnabled = false;
-    private boolean mHttpsEverywhereEnabled = false;
 
     private ArticleContent.BuildContentTask mBuildArticleContentTask;
     private ArticleContent mArticleContent;
@@ -123,7 +116,6 @@ class WebViewRenderer extends WebRenderer {
         WebSettings webSettings = mWebView.getSettings();
         webSettings.setJavaScriptEnabled(true);
         webSettings.setDomStorageEnabled(true);
-        webSettings.setGeolocationEnabled(true);
         webSettings.setSupportZoom(true);
         webSettings.setTextZoom(Settings.get().getWebViewTextZoom());
         webSettings.setBuiltInZoomControls(true);
@@ -131,7 +123,6 @@ class WebViewRenderer extends WebRenderer {
         webSettings.setLoadWithOverviewMode(true);
         webSettings.setUseWideViewPort(true);
         webSettings.setSupportMultipleWindows(true);
-        webSettings.setGeolocationDatabasePath(Constant.WEBVIEW_DATABASE_LOCATION);
         webSettings.setSavePassword(false);
 
         String userAgentString = Settings.get().getUserAgentString();
@@ -223,9 +214,7 @@ class WebViewRenderer extends WebRenderer {
         if (mHost.startsWith("www.")) {
             mHost = mHost.substring(4);
         }
-        mTrackingProtectionEnabled = Settings.get().isTrackingProtectionEnabled();
         mAdblockEnabled = Settings.get().isAdBlockEnabled();
-        mHttpsEverywhereEnabled = Settings.get().isHttpsEverywhereEnabled();
         refresh3PCookieSetting();
 
         String urlAsString = url.toString();
@@ -267,10 +256,8 @@ class WebViewRenderer extends WebRenderer {
                 break;
 
             case Web:
-                // In case the user changes adblock / TP settings and reloads the current bubble
-                mTrackingProtectionEnabled = Settings.get().isTrackingProtectionEnabled();
+                // In case the user changes adblock settings and reloads the current bubble
                 mAdblockEnabled = Settings.get().isAdBlockEnabled();
-                mHttpsEverywhereEnabled = Settings.get().isHttpsEverywhereEnabled();
                 refresh3PCookieSetting();
                 mWebView.reload();
                 break;
@@ -326,17 +313,7 @@ class WebViewRenderer extends WebRenderer {
         mPageInspector.run(mWebView, adInsert);
     }
 
-    @Override
-    public YouTubeEmbedHelper getPageInspectorYouTubeEmbedHelper() {
-        return mPageInspector.getYouTubeEmbedHelper();
-    }
-
     PageInspector.OnItemFoundListener mOnPageInspectorItemFoundListener = new PageInspector.OnItemFoundListener() {
-
-        @Override
-        public void onYouTubeEmbeds() {
-            mController.onPageInspectorYouTubeEmbedFound();
-        }
 
         @Override
         public void onTouchIconLoaded(Bitmap bitmap, String pageUrl) {
@@ -509,13 +486,12 @@ class WebViewRenderer extends WebRenderer {
             return mController.shouldOverrideUrlLoading(urlAsString, viaInput);
         }
 
-        private WebResourceResponse interceptTheCall(WebView view, String urlStr, String filterOption, boolean apiLevelAbove21) {
+        private WebResourceResponse interceptTheCall(WebView view, String urlStr, String filterOption) {
             // null signifies allowing the request
             WebResourceResponse allowRequest = null;
 
-            // Quickly check to see if no checks are needed because ad blocking and tracking
-            // protection are not enabled.
-            if (!mTrackingProtectionEnabled && !mAdblockEnabled && !mHttpsEverywhereEnabled) {
+            // Quickly check to see if no checks are needed because ad blocking is not enabled.
+            if (!mAdblockEnabled) {
                 return allowRequest;
             }
 
@@ -526,120 +502,11 @@ class WebViewRenderer extends WebRenderer {
                 return allowRequest;
             }
 
-            if (mTrackingProtectionEnabled &&
-                    mController.shouldTrackingProtectionBlockUrl(mHost, host) ||
-                    mAdblockEnabled && mController.shouldAdBlockUrl(mHost, urlStr, filterOption)) {
-                // Unfortunately the deprecated API that we're targetting doesn't have a better
-                // way to block this. Once we upgrade our target then we can use a better override
-                // which allows us to set a response code.
-                if (!apiLevelAbove21) {
-                    return new WebResourceResponse("text/html", "UTF-8", null);
-                }
-                else {
-                    return new WebResourceResponse("text/html", "UTF-8", 450, "Blocked", null, null);
-                }
+            if (mController.shouldAdBlockUrl(mHost, urlStr, filterOption)) {
+                return new WebResourceResponse("text/html", "UTF-8", 450, "Blocked", null, null);
             }
 
-            return HttpsEverywhereResponse(urlStr);
-        }
-
-        private WebResourceResponse HttpsEverywhereResponse(String urlStr) {
-            if (!mHttpsEverywhereEnabled) {
-                return null;
-            }
-
-            String newUrl = mController.getHTTPSUrl(urlStr);
-            if (!newUrl.equals(urlStr)) {
-                try {
-                    URL url = new URL(newUrl);
-                    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-
-                    String mimeType = conn.getContentType();
-                    String encoding = conn.getContentEncoding();
-
-                    InputStream is = conn.getInputStream();
-
-                    return new WebResourceResponse(mimeType, encoding, is);
-                }
-                catch (MalformedURLException e) {
-                    e.printStackTrace();
-                }
-                catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            return null;
-        }
-
-        @Override
-        public WebResourceResponse shouldInterceptRequest (WebView view, String urlStr) {
-            // That call is for the API level is lower then 21
-
-            // We do not change or block the top URL
-            if (mUrl.toString().equals(urlStr)) {
-                return null;
-            }
-
-            // Just return as is for now, we will have a solution for older devices later.
-            // The blocking by file extension not being reliable enough for now.
-            return HttpsEverywhereResponse(urlStr);
-
-            // Quickly check to see if no checks are needed because ad blocking and tracking
-            // protection are not enabled.
-            /*if (!mTrackingProtectionEnabled && !mAdblockEnabled) {
-                return null;
-            }
-
-            String filterOption = "none";*/
-
-            /*HttpURLConnection connection;
-            try {
-                URL url = new URL(urlStr);
-                connection = (HttpURLConnection)url.openConnection();
-                connection.setConnectTimeout(3000);
-                connection.connect();
-                // get the size of the file which is in the header of the request
-                int size = connection.getContentLength();
-                if (-1 != size) {
-                    InputStream inputStream = connection.getInputStream();
-                    byte[] buffer = new byte[size];
-                    inputStream.read(buffer);
-                    String str = new String(buffer);
-                    if (null != str) {
-                        if (str.contains("Accept")) {
-
-                        }
-                    }
-                }
-            }
-            catch (Exception e) {
-                // Do nothing here
-            }*/
-
-            /*try {
-                URL url = new URL(urlStr);
-                String urlPath = url.getPath();
-                if (urlPath.endsWith("css") || urlStr.endsWith(".css") || urlStr.endsWith(".woff")) {
-                    filterOption = "/css";
-                }
-                else if (urlStr.endsWith(".png") || urlStr.endsWith(".ico") || urlStr.endsWith(".gif")
-                        || urlStr.endsWith(".svg") || urlStr.endsWith(".icns") || urlStr.endsWith(".bmp")
-                        || urlStr.endsWith(".pdf") || urlStr.endsWith(".pcd") || urlStr.endsWith(".fpx")
-                        || urlStr.endsWith(".jp2") || urlStr.endsWith(".jpx") || urlStr.endsWith(".j2k")
-                        || urlStr.endsWith(".j2c") || urlStr.endsWith(".jpeg") || urlStr.endsWith(".jpg")
-                        || urlStr.endsWith(".jif") || urlStr.endsWith(".jfif") || urlStr.endsWith(".bmp")
-                        || urlStr.endsWith(".tif") || urlStr.endsWith(".tiff")) {
-                    filterOption = "image/";
-                }
-                else if (urlStr.endsWith(".js") || urlPath.endsWith("js")) {
-                    filterOption = "javascript";
-                }
-            } catch (Exception e) {
-                // Do nothing here
-            }
-
-            return interceptTheCall(view, urlStr, filterOption, false);*/
+            return allowRequest;
         }
 
         @Override
@@ -647,10 +514,8 @@ class WebViewRenderer extends WebRenderer {
             // That call is for the API level is higher or equal to 21
 
             String currentUrl = resourceRequest.getUrl().toString();
-            // Quickly check to see if no checks are needed because ad blocking and tracking
-            // protection are not enabled.
-            if (!mTrackingProtectionEnabled && !mAdblockEnabled && !mHttpsEverywhereEnabled ||
-                    mUrl.toString().equals(currentUrl)) {
+            // Quickly check to see if no checks are needed because ad blocking is not enabled.
+            if (!mAdblockEnabled || mUrl.toString().equals(currentUrl)) {
                 return null;
             }
 
@@ -673,7 +538,7 @@ class WebViewRenderer extends WebRenderer {
                 }
             }
 
-            return interceptTheCall(view, currentUrl, filterOption, true);
+            return interceptTheCall(view, currentUrl, filterOption);
         }
 
         @Override
@@ -735,7 +600,7 @@ class WebViewRenderer extends WebRenderer {
                             });
             if (error.getPrimaryError() == SslError.SSL_UNTRUSTED) {
                 AlertDialog alert = builder.create();
-                alert.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                alert.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
                 Util.showThemedDialog(alert);
             } else {
                 handler.proceed();
@@ -812,7 +677,7 @@ class WebViewRenderer extends WebRenderer {
         public boolean onJsAlert(WebView view, String url, String message, final JsResult result) {
             mJsAlertDialog = new AlertDialog.Builder(mContext).create();
             mJsAlertDialog.setMessage(message);
-            mJsAlertDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+            mJsAlertDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
             mJsAlertDialog.setButton(AlertDialog.BUTTON_POSITIVE, mContext.getResources().getString(R.string.action_ok),
                     new DialogInterface.OnClickListener() {
 
@@ -843,7 +708,7 @@ class WebViewRenderer extends WebRenderer {
             mJsConfirmDialog = new AlertDialog.Builder(mContext).create();
             mJsConfirmDialog.setTitle(R.string.confirm_title);
             mJsConfirmDialog.setMessage(message);
-            mJsConfirmDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+            mJsConfirmDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
             mJsConfirmDialog.setButton(AlertDialog.BUTTON_POSITIVE, mContext.getResources().getString(android.R.string.ok), new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
@@ -875,7 +740,7 @@ class WebViewRenderer extends WebRenderer {
 
             mJsPromptDialog = new AlertDialog.Builder(mContext).create();
             mJsPromptDialog.setView(v);
-            mJsPromptDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+            mJsPromptDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
             mJsPromptDialog.setButton(AlertDialog.BUTTON_POSITIVE, mContext.getResources().getString(android.R.string.ok), new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
@@ -932,15 +797,6 @@ class WebViewRenderer extends WebRenderer {
             return false;
         }
 
-        @Override
-        public void onGeolocationPermissionsShowPrompt(final String origin, final GeolocationPermissions.Callback callback) {
-            mController.onGeolocationPermissionsShowPrompt(origin, new GetGeolocationCallback() {
-                @Override
-                public void onAllow() {
-                    callback.invoke(origin, true, false);
-                }
-            });
-        }
     };
 
     @Override

@@ -42,16 +42,6 @@ public class SettingsMoreActivity extends AppCompatPreferenceActivity {
         }
     }
 
-    public static class TrackingProtectionTurnOnEvent {
-        public TrackingProtectionTurnOnEvent() {
-        }
-    }
-
-    public static class HttpsEverywhereTurnOnEvent {
-        public HttpsEverywhereTurnOnEvent() {
-        }
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -119,53 +109,13 @@ public class SettingsMoreActivity extends AppCompatPreferenceActivity {
             });
 
             final CheckBoxPreference adBlockPreference = (CheckBoxPreference) findPreference(Settings.PREFERENCE_ADBLOCK_MODE);
-            final CheckBoxPreference trackingProtectionPreference = (CheckBoxPreference) findPreference(Settings.PREFERENCE_TRACKINGPROTECTION_MODE);
-            // Hide Adblock and tracking protection preferences on API level lower then 21
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-                trackingProtectionPreference.setSummary(R.string.preference_adblock_tracking_protection_from_disabled);
-                trackingProtectionPreference.setChecked(false);
-                trackingProtectionPreference.setEnabled(false);
-
-                adBlockPreference.setSummary(R.string.preference_adblock_tracking_protection_from_disabled);
-                adBlockPreference.setChecked(false);
-                adBlockPreference.setEnabled(false);
-            }
-            else {
-                trackingProtectionPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-                    @Override
-                    public boolean onPreferenceChange(Preference preference, Object newValue) {
-                        if ((boolean) newValue) {
-                            MainApplication app = (MainApplication) getActivity().getApplication();
-                            Bus bus = app.getBus();
-                            bus.post(new TrackingProtectionTurnOnEvent());
-                        }
-
-                        return true;
-                    }
-                });
-
-                adBlockPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-                    @Override
-                    public boolean onPreferenceChange(Preference preference, Object newValue) {
-                        if ((boolean) newValue) {
-                            MainApplication app = (MainApplication) getActivity().getApplication();
-                            Bus bus = app.getBus();
-                            bus.post(new AdBlockTurnOnEvent());
-                        }
-
-                        return true;
-                    }
-                });
-            }
-
-            final CheckBoxPreference httpsEverywherePreference = (CheckBoxPreference) findPreference(Settings.PREFERENCE_HTTPS_EVERYWHERE_MODE);
-            httpsEverywherePreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            adBlockPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
                 @Override
                 public boolean onPreferenceChange(Preference preference, Object newValue) {
                     if ((boolean) newValue) {
                         MainApplication app = (MainApplication) getActivity().getApplication();
                         Bus bus = app.getBus();
-                        bus.post(new HttpsEverywhereTurnOnEvent());
+                        bus.post(new AdBlockTurnOnEvent());
                     }
 
                     return true;

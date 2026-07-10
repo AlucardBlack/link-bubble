@@ -11,24 +11,17 @@ import android.view.View;
 import android.webkit.WebView;
 
 import com.linkbubble.articlerender.ArticleContent;
-import com.linkbubble.util.YouTubeEmbedHelper;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 
 public abstract class WebRenderer {
 
-    public interface GetGeolocationCallback {
-        public void onAllow();
-    }
-
     public interface Controller {
         public void resetBubblePanelAdjustment();
         public void adjustBubblesPanel(int newY, int oldY, boolean afterTouchAdjust);
         public boolean shouldAdBlockUrl(String baseHost, String urlStr, String filterOption);
-        public boolean shouldTrackingProtectionBlockUrl(String baseHost, String host);
         public String adInsertionList(String baseHost);
-        public String getHTTPSUrl(String originalUrl);
         public boolean shouldOverrideUrlLoading(String urlAsString, boolean viaUserInput);
         public void doUpdateVisitedHistory (String url, boolean isReload, boolean unknownClick);
         public void onLoadUrl(String urlAsString);      // may or may not be called
@@ -43,8 +36,6 @@ public abstract class WebRenderer {
         public void onUrlLongClick(WebView webView, String url, int type);
         public void onShowBrowserPrompt();
         public void onCloseWindow();
-        public void onGeolocationPermissionsShowPrompt(String origin, GetGeolocationCallback callback);
-        public void onPageInspectorYouTubeEmbedFound();
         public void onPageInspectorTouchIconLoaded(Bitmap bitmap, String pageUrl);
         public void onPageInspectorDropDownWarningClick();
         void onPagedInspectorThemeColorFound(int color);
@@ -103,8 +94,6 @@ public abstract class WebRenderer {
     public abstract void resetPageInspector();
 
     public void runPageInspector(String adInsert) {}
-
-    public abstract YouTubeEmbedHelper getPageInspectorYouTubeEmbedHelper();
 
     public abstract String getUserAgentString(Context context);
 

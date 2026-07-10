@@ -82,7 +82,7 @@ public class CanvasView extends FrameLayout {
             lp.y = -statusBarHeight;
             lp.height = statusBarHeight;
             lp.width = WindowManager.LayoutParams.MATCH_PARENT;
-            lp.type = WindowManager.LayoutParams.TYPE_SYSTEM_ALERT;
+            lp.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
             lp.flags = WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN;
             lp.format = PixelFormat.TRANSPARENT;
 
@@ -152,7 +152,7 @@ public class CanvasView extends FrameLayout {
         mWindowManagerParams.y = 0;
         mWindowManagerParams.height = WindowManager.LayoutParams.MATCH_PARENT;
         mWindowManagerParams.width = WindowManager.LayoutParams.MATCH_PARENT;
-        mWindowManagerParams.type = WindowManager.LayoutParams.TYPE_PHONE;
+        mWindowManagerParams.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
         mWindowManagerParams.flags = WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED;
         mWindowManagerParams.format = PixelFormat.TRANSPARENT;
         mWindowManagerParams.setTitle("LinkBubble: CanvasView");

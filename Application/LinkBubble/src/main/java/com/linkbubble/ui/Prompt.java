@@ -76,7 +76,7 @@ public class Prompt {
         mLayoutParams = new WindowManager.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 context.getResources().getDimensionPixelSize(R.dimen.snackbar_height),
-                WindowManager.LayoutParams.TYPE_SYSTEM_ALERT,
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
                 PixelFormat.TRANSLUCENT);
         mLayoutParams.gravity = Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM;

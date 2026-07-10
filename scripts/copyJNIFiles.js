@@ -18,9 +18,3 @@ cp -f node_modules/bloom-filter-cpp/hashFn.cpp ./Application/LinkBubble/src/main
 cp -f node_modules/hashset-cpp/HashSet.cpp ./Application/LinkBubble/src/main/jni/HashSet.cpp
 cp -f node_modules/hashset-cpp/HashSet.h ./Application/LinkBubble/src/main/jni/HashSet.h
 cp -f node_modules/hashset-cpp/HashItem.h ./Application/LinkBubble/src/main/jni/HashItem.h
-cp -f node_modules/tracking-protection/FirstPartyHost.h ./Application/LinkBubble/src/main/jni/FirstPartyHost.h
-cp -f node_modules/tracking-protection/FirstPartyHost.cpp ./Application/LinkBubble/src/main/jni/FirstPartyHost.cpp
-cp -f node_modules/tracking-protection/TrackerData.h ./Application/LinkBubble/src/main/jni/TrackerData.h
-cp -f node_modules/tracking-protection/TrackerData.cpp ./Application/LinkBubble/src/main/jni/TrackerData.cpp
-cp -f node_modules/tracking-protection/TPParser.h ./Application/LinkBubble/src/main/jni/TPParser.h
-cp -f node_modules/tracking-protection/TPParser.cpp ./Application/LinkBubble/src/main/jni/TPParser.cpp

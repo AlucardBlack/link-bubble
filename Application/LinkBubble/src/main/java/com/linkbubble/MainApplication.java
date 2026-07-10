@@ -21,20 +21,18 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Vibrator;
 import androidx.core.app.NotificationCompat;
+import androidx.core.content.ContextCompat;
 import android.webkit.WebView;
 import android.widget.Toast;
 
 import com.linkbubble.Constant.BubbleAction;
 import com.linkbubble.adblock.ABPFilterParser;
-import com.linkbubble.adblock.TPFilterParser;
 import com.linkbubble.adblock.WhiteListCollector;
 import com.linkbubble.adinsert.AdInserter;
 import com.linkbubble.db.DatabaseHelper;
 import com.linkbubble.db.HistoryRecord;
-import com.linkbubble.httpseverywhere.HttpsEverywhere;
 import com.linkbubble.ui.NotificationNewBraveBrowserActivity;
 import com.linkbubble.ui.Prompt;
 import com.linkbubble.ui.SearchURLSuggestionsContainer;
@@ -67,9 +65,7 @@ public class MainApplication extends Application {
     public static boolean sShowingAppPickerDialog = false;
     private static long sTrialStartTime = -1;
 
-    private HttpsEverywhere mHttpsEverywhere = null;
     private ABPFilterParser mABPParser = null;
-    private TPFilterParser mTPParser = null;
     private AdInserter mADInserter = null;
     private WhiteListCollector mWhiteListCollector = null;
     public boolean mAdInserterEnabled = false;
@@ -98,16 +94,8 @@ public class MainApplication extends Application {
         Favicons.attachToContext(this);
         recreateFaviconCache();
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            if (Settings.get().isAdBlockEnabled()) {
-                mBus.post(new SettingsMoreActivity.AdBlockTurnOnEvent());
-            }
-            if (Settings.get().isTrackingProtectionEnabled()) {
-                mBus.post(new SettingsMoreActivity.TrackingProtectionTurnOnEvent());
-            }
-        }
-        if (Settings.get().isHttpsEverywhereEnabled()) {
-            mBus.post(new SettingsMoreActivity.HttpsEverywhereTurnOnEvent());
+        if (Settings.get().isAdBlockEnabled()) {
+            mBus.post(new SettingsMoreActivity.AdBlockTurnOnEvent());
         }
         // Enable ad insertion for Crashlytics builds and disable for play store builds
         ApplicationInfo appInfo = getApplicationInfo();
@@ -169,14 +157,6 @@ public class MainApplication extends Application {
         return mBus;
     }
 
-    public void enableHttpsEverywhere() {
-        if (null == mHttpsEverywhere) {
-            mHttpsEverywhere = new HttpsEverywhere(this);
-        }
-    }
-
-    public HttpsEverywhere getHttpsEverywhere() { return mHttpsEverywhere; }
-
     public void initWhiteListCollector() {
         if (mWhiteListCollector == null) {
             mWhiteListCollector = new WhiteListCollector(this);
@@ -185,16 +165,6 @@ public class MainApplication extends Application {
 
     public WhiteListCollector getWhiteListCollector() {
         return mWhiteListCollector;
-    }
-
-    public void createTrackingProtectionList() {
-        if (null == mTPParser) {
-            mTPParser = new TPFilterParser(this);
-        }
-    }
-
-    public TPFilterParser getTrackingProtectionList() {
-        return mTPParser;
     }
 
     public void createABPParser() {
@@ -271,7 +241,7 @@ public class MainApplication extends Application {
         serviceIntent.putExtra("url", url);
         serviceIntent.putExtra("start_time", time);
         serviceIntent.putExtra("openedFromAppName", openedFromAppName);
-        context.startService(serviceIntent);
+        ContextCompat.startForegroundService(context, serviceIntent);
 
         return true;
     }
@@ -318,7 +288,7 @@ public class MainApplication extends Application {
         serviceIntent.putExtra("cmd", "restore");
         serviceIntent.putExtra("urls", urls);
         serviceIntent.putExtra("start_time", System.currentTimeMillis());
-        context.startService(serviceIntent);
+        ContextCompat.startForegroundService(context, serviceIntent);
     }
 
     public static boolean openInBrowser(Context context, Intent intent, boolean showToastIfNoBrowser, boolean braveBrowser) {
@@ -621,39 +591,10 @@ public class MainApplication extends Application {
         new DownloadAdBlockDataAsyncTask().execute();
     }
 
-    class DownloadTrackingProtectionDataAsyncTask extends AsyncTask<Void,Void,Long> {
-
-        protected Long doInBackground(Void... params) {
-            createTrackingProtectionList();
-            return null;
-        }
-    }
-
-    @SuppressWarnings("unused")
-    @Subscribe
-    public void onTrackingProtectionOn(SettingsMoreActivity.TrackingProtectionTurnOnEvent event) {
-        new DownloadTrackingProtectionDataAsyncTask().execute();
-    }
-
     class DownloadAdInsertionDataAsyncTask extends AsyncTask<Void,Void,Long> {
 
         protected Long doInBackground(Void... params) {
             createAdInsertionList();
-            return null;
-        }
-    }
-
-    @SuppressWarnings("unused")
-    @Subscribe
-    public void onHttpsEverywhereOn(SettingsMoreActivity.HttpsEverywhereTurnOnEvent event) {
-        new DownloadHttpsEverywhereDataAsyncTask().execute();
-    }
-
-    class DownloadHttpsEverywhereDataAsyncTask extends AsyncTask<Void,Void,Long> {
-
-        protected Long doInBackground(Void... params) {
-            enableHttpsEverywhere();
-
             return null;
         }
     }

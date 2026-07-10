@@ -4,11 +4,17 @@
 
 package com.linkbubble.ui;
 
+import android.Manifest;
 import android.app.ActivityOptions;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
 import android.util.Log;
@@ -32,6 +38,8 @@ import com.squareup.otto.Subscribe;
 public class HomeActivity extends AppCompatActivity {
 
     private static final String TAG = "HomeActivity";
+    private static final int REQUEST_POST_NOTIFICATIONS = 1001;
+    private static final int REQUEST_WRITE_EXTERNAL_STORAGE = 1002;
 
     Button mActionButtonView;
     Button mNewBubble;
@@ -39,6 +47,7 @@ public class HomeActivity extends AppCompatActivity {
     View mTimeSavedPerLinkContainerView;
     CondensedTextView mTimeSavedPerLinkTextView;
     CondensedTextView mTimeSavedTotalTextView;
+    View mGrantOverlayPermissionView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,6 +97,10 @@ public class HomeActivity extends AppCompatActivity {
                 rootView.addView(acceptTermsView);
             }
         }
+
+        checkOverlayPermission();
+        checkNotificationPermission();
+        checkLegacyStoragePermission();
 
         if (!Settings.get().getWelcomeMessageDisplayed()) {
             boolean showWelcomeUrl = true;
@@ -156,8 +169,66 @@ public class HomeActivity extends AppCompatActivity {
         super.onResume();
 
         updateLinkLoadTimeStats();
+        checkOverlayPermission();
 
         MainApplication.postEvent(getApplicationContext(), new MainApplication.CheckStateEvent());
+    }
+
+    private void checkOverlayPermission() {
+        FrameLayout rootView = (FrameLayout) findViewById(android.R.id.content);
+        boolean hasPermission = android.provider.Settings.canDrawOverlays(this);
+
+        if (hasPermission) {
+            if (mGrantOverlayPermissionView != null && rootView != null) {
+                rootView.removeView(mGrantOverlayPermissionView);
+                mGrantOverlayPermissionView = null;
+            }
+            return;
+        }
+
+        if (mGrantOverlayPermissionView != null || rootView == null) {
+            return;
+        }
+
+        mGrantOverlayPermissionView = getLayoutInflater().inflate(R.layout.view_grant_overlay_permission, null);
+        Button grantButton = (Button) mGrantOverlayPermissionView.findViewById(R.id.grant_overlay_permission_button);
+        grantButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                        Uri.parse("package:" + getPackageName()));
+                startActivity(intent);
+            }
+        });
+        mGrantOverlayPermissionView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // do nothing, but prevent clicks from flowing to item underneath
+            }
+        });
+
+        rootView.addView(mGrantOverlayPermissionView);
+    }
+
+    private void checkNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+                && ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                        != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.POST_NOTIFICATIONS}, REQUEST_POST_NOTIFICATIONS);
+        }
+    }
+
+    private void checkLegacyStoragePermission() {
+        // Scoped storage (MediaStore) is used on API 29+ and needs no permission.
+        // Below that, saving images still goes through the legacy public Downloads
+        // directory, which requires this runtime permission.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q
+                && ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                        != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_WRITE_EXTERNAL_STORAGE);
+        }
     }
 
     @Override

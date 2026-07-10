@@ -48,8 +48,6 @@ public class PageInspector {
     private WebView mWebView;
     private Handler mHandler;
     private JSEmbedHandler mJSEmbedHandler;
-    private YouTubeEmbedHelper mYouTubeEmbedHelper;
-    private String mLastYouTubeEmbedResultString = null;
     private OnItemFoundListener mOnItemFoundListener;
 
     private static final int MAX_FAVICON_ENTRIES = 4;
@@ -59,7 +57,6 @@ public class PageInspector {
     private TouchIconTransformation sTouchIconTransformation = null;
 
     public interface OnItemFoundListener {
-        void onYouTubeEmbeds();
         void onTouchIconLoaded(Bitmap bitmap, String pageUrl);
         void onFetchHtml(String html);
         void onThemeColor(int color);
@@ -85,8 +82,6 @@ public class PageInspector {
             }
 
             mScriptCache += getFileContents("TouchIcon");
-
-            mScriptCache += getFileContents("YouTube");
 
             mScriptCache += getFileContents("FetchContent");
 
@@ -139,13 +134,6 @@ public class PageInspector {
     }
 
     public void reset() {
-        if (mYouTubeEmbedHelper != null) {
-            mYouTubeEmbedHelper.clear();
-        }
-    }
-
-    public YouTubeEmbedHelper getYouTubeEmbedHelper() {
-        return mYouTubeEmbedHelper;
     }
 
     private static class TouchIconEntry {
@@ -280,33 +268,8 @@ public class PageInspector {
                 }
             });
             dialog = builder.create();
-            dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+            dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
             dialog.show();
-        }
-
-        @JavascriptInterface
-        public void onYouTubeEmbeds(String string) {
-            if (mLastYouTubeEmbedResultString != null && mLastYouTubeEmbedResultString.equals(string)) {
-                return;
-            }
-            mLastYouTubeEmbedResultString = string;
-
-            if (string == null || string.length() == 0) {
-                return;
-            }
-
-            Log.d(TAG, "onYouTubeEmbeds() - " + string);
-
-            if (mYouTubeEmbedHelper == null) {
-                mYouTubeEmbedHelper = new YouTubeEmbedHelper(mContext);
-            }
-
-            String[] strings = string.split(",");
-            if (mYouTubeEmbedHelper.onEmbeds(strings)) {
-                if (mOnItemFoundListener != null) {
-                    mOnItemFoundListener.onYouTubeEmbeds();
-                }
-            }
         }
 
         @JavascriptInterface
