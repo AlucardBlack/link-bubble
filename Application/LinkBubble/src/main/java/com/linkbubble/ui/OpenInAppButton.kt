@@ -198,8 +198,8 @@ class OpenInAppButton @JvmOverloads constructor(
     override fun onClick(v: View) {
         if (v.tag is ContentView.AppForUrl) {
             val appForUrl = v.tag as ContentView.AppForUrl
-            if (MainApplication.loadIntent(context, appForUrl.mResolveInfo.activityInfo.packageName,
-                            appForUrl.mResolveInfo.activityInfo.name, appForUrl.mUrl.toString(), -1, true)) {
+            if (MainApplication.loadIntent(context, appForUrl.mResolveInfo!!.activityInfo.packageName,
+                            appForUrl.mResolveInfo!!.activityInfo.name, appForUrl.mUrl.toString(), -1, true)) {
                 if (mOnOpenInAppClickListener != null) {
                     mOnOpenInAppClickListener!!.onAppOpened()
                 }
@@ -208,7 +208,7 @@ class OpenInAppButton @JvmOverloads constructor(
             if (mAppsForUrl.size > 1) {
                 val resolveInfos = ArrayList<ResolveInfo>()
                 for (item in mAppsForUrl) {
-                    resolveInfos.add(item.mResolveInfo)
+                    resolveInfos.add(item.mResolveInfo!!)
                 }
 
                 if (0 != resolveInfos.size) {
@@ -218,10 +218,10 @@ class OpenInAppButton @JvmOverloads constructor(
                                     val appForUrl = getAppForUrl(actionItem.mPackageName, actionItem.mActivityClassName)
                                     if (appForUrl != null) {
                                         if (always) {
-                                            Settings.get().setDefaultApp(appForUrl.mUrl.toString(), appForUrl.mResolveInfo)
+                                            Settings.get().setDefaultApp(appForUrl.mUrl.toString(), appForUrl.mResolveInfo!!)
                                         }
-                                        if (MainApplication.loadIntent(context, appForUrl.mResolveInfo.activityInfo.packageName,
-                                                        appForUrl.mResolveInfo.activityInfo.name, appForUrl.mUrl.toString(), -1, true)) {
+                                        if (MainApplication.loadIntent(context, appForUrl.mResolveInfo!!.activityInfo.packageName,
+                                                        appForUrl.mResolveInfo!!.activityInfo.name, appForUrl.mUrl.toString(), -1, true)) {
                                             if (mOnOpenInAppClickListener != null) {
                                                 mOnOpenInAppClickListener!!.onAppOpened()
                                             }
@@ -238,8 +238,8 @@ class OpenInAppButton @JvmOverloads constructor(
 
     private fun getAppForUrl(packageName: String, className: String): ContentView.AppForUrl? {
         for (appForUrl in mAppsForUrl) {
-            if (appForUrl.mResolveInfo.activityInfo.packageName == packageName
-                    && appForUrl.mResolveInfo.activityInfo.name == className) {
+            if (appForUrl.mResolveInfo!!.activityInfo.packageName == packageName
+                    && appForUrl.mResolveInfo!!.activityInfo.name == className) {
                 return appForUrl
             }
         }

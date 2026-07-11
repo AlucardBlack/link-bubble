@@ -360,7 +360,7 @@ class CanvasView(context: Context) : FrameLayout(context) {
         if (null == contentView) {
             return
         }
-        val webRenderer = contentView.webRenderer
+        val webRenderer = contentView.getWebRenderer()
         if (null == webRenderer) {
             return
         }
@@ -377,7 +377,7 @@ class CanvasView(context: Context) : FrameLayout(context) {
         if (null == contentView) {
             return
         }
-        val webRenderer = contentView.webRenderer
+        val webRenderer = contentView.getWebRenderer()
         if (null == webRenderer) {
             return
         }
