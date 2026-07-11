@@ -23,7 +23,7 @@ open class SettingsBaseFragment : PreferenceFragment() {
      * non-standard sizes from causing text to be justified at wrong position.
      * This was an issue with "Share picker" (too small) and preference_theme_* (too large) on Nexus S
      */
-    fun setPreferenceIcon(preference: Preference, drawableIn: Drawable) {
+    fun setPreferenceIcon(preference: Preference, drawableIn: Drawable?) {
         var drawable = drawableIn
         if (drawable is BitmapDrawable) {
             //getResources().getDrawableForDensity()

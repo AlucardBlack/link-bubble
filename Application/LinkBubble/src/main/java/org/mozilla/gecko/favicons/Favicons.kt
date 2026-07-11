@@ -278,7 +278,10 @@ class Favicons @JvmOverloads constructor(cacheSize: Int = FAVICON_CACHE_SIZE_BYT
     }
 
     fun putFaviconInMemCache(pageUrl: String?, image: Bitmap?) {
-        mFaviconsCache.putSingleFavicon(pageUrl!!, image!!)
+        if (pageUrl == null || image == null) {
+            return
+        }
+        mFaviconsCache.putSingleFavicon(pageUrl, image)
     }
 
     fun putFaviconsInMemCache(pageUrl: String, images: MutableIterator<Bitmap>, permanently: Boolean) {

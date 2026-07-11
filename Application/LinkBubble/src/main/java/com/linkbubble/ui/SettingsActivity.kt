@@ -325,7 +325,7 @@ class SettingsActivity : AppCompatPreferenceActivity() {
             mUserAgentPreference.summary = mUserAgentPreference.entry
 
             val defaultAppsPreference = findPreference(Settings.PREFERENCE_DEFAULT_APPS)
-            setPreferenceIcon(defaultAppsPreference, Settings.get().getDefaultBrowserIcon(activity)!!)
+            setPreferenceIcon(defaultAppsPreference, Settings.get().getDefaultBrowserIcon(activity))
 
             checkDefaultBrowser()
         }

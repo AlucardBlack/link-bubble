@@ -66,6 +66,13 @@ class Settings private constructor(private val mContext: Context) {
 
     class OnConsumeBubblesChangedEvent
 
+    private class LastAppRedirect {
+        var mUrl: String? = null
+        var mTime: Long = 0
+    }
+
+    private val mLastAppRedirects = ArrayList<LastAppRedirect>(MAX_LAST_APP_REDIRECT_COUNT)
+
     init {
         //mDownloadHandlerComponentName = new ComponentName(mContext, DownloadHandlerActivity.class);
 
@@ -1125,13 +1132,6 @@ class Settings private constructor(private val mContext: Context) {
         mTotalTimeSaved = mSharedPreferences.getLong(TOTAL_TIME_SAVED_KEY, 0)
         mTotalLinksLoaded = mSharedPreferences.getInt(TOTAL_LINKS_LOADED_KEY, 0)
     }
-
-    private class LastAppRedirect {
-        var mUrl: String? = null
-        var mTime: Long = 0
-    }
-
-    private val mLastAppRedirects = ArrayList<LastAppRedirect>(MAX_LAST_APP_REDIRECT_COUNT)
 
     // Did we *just* redirect to this URL? We need to store this to fix #276
     fun didRecentlyRedirectToApp(url: String): Boolean {

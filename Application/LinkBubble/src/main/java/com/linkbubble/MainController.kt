@@ -270,8 +270,6 @@ class MainController private constructor(context: Context, eventHandler: EventHa
         val bus = app.getBus()
         bus.register(this)
 
-        updateIncognitoMode(Settings.get().isIncognitoMode)
-
         val inflater = LayoutInflater.from(mContext)
 
         mBubbleDraggable = inflater.inflate(R.layout.view_bubble_draggable, null) as BubbleDraggable
@@ -297,6 +295,8 @@ class MainController private constructor(context: Context, eventHandler: EventHa
         mOriginalLocationY = mBubbleFlowDraggable.getChildAt(0).y
 
         mBubbleDraggable.setBubbleFlowDraggable(mBubbleFlowDraggable)
+
+        updateIncognitoMode(Settings.get().isIncognitoMode)
     }
 
     /*
