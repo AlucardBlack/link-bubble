@@ -180,7 +180,7 @@ class MainController private constructor(context: Context, eventHandler: EventHa
 
     val mOnBubbleFlowExpandFinishedListener: BubbleFlowView.AnimationEventListener = object : BubbleFlowView.AnimationEventListener {
         override fun onAnimationEnd(sender: BubbleFlowView) {
-            val currentTab = (sender as BubbleFlowDraggable).currentTab
+            val currentTab = (sender as BubbleFlowDraggable).getCurrentTab()
             if (currentTab != null && currentTab.getContentView() != null) {
                 currentTab.getContentView()!!.saveLoadTime()
             }
@@ -195,7 +195,7 @@ class MainController private constructor(context: Context, eventHandler: EventHa
 
     private fun onBubbleFlowCollapseFinished() {
         mBubbleDraggable.visibility = View.VISIBLE
-        val tab = mBubbleFlowDraggable.currentTab
+        val tab = mBubbleFlowDraggable.getCurrentTab()
         if (tab != null) {
             tab.setImitator(mBubbleDraggable)
         }
@@ -385,7 +385,7 @@ class MainController private constructor(context: Context, eventHandler: EventHa
                             mBubbleFlowDraggable.visibility = View.VISIBLE
                         }
                     } else {
-                        val view = mBubbleFlowDraggable.currentTab
+                        val view = mBubbleFlowDraggable.getCurrentTab()
                         if (null != view && !view.mIsClosing) {
                             mBubbleFlowDraggable.visibility = View.GONE
                         }
@@ -530,10 +530,10 @@ class MainController private constructor(context: Context, eventHandler: EventHa
     }
 
     val activeTabCount: Int
-        get() = mBubbleFlowDraggable.activeTabCount
+        get() = mBubbleFlowDraggable.getActiveTabCount()
 
     val visibleTabCount: Int
-        get() = mBubbleFlowDraggable.visibleTabCount
+        get() = mBubbleFlowDraggable.getVisibleTabCount()
 
     fun isUrlActive(urlAsString: String): Boolean {
         return mBubbleFlowDraggable.isUrlActive(urlAsString)
@@ -594,7 +594,7 @@ class MainController private constructor(context: Context, eventHandler: EventHa
             // Will be non-zero in the event a link has been dismissed by a user, but its TabView
             // instance is still animating off screen. In that case, keep triggering an update so that when the
             // item finishes, we are ready to call onDestroy().
-            if (mBubbleFlowDraggable.visibleTabCount == 0 && !Prompt.isShowing()) {
+            if (mBubbleFlowDraggable.getVisibleTabCount() == 0 && !Prompt.isShowing()) {
                 finish()
             } else {
                 scheduleUpdate()
@@ -850,7 +850,7 @@ class MainController private constructor(context: Context, eventHandler: EventHa
 
         mOpenUrlInfos.add(OpenUrlInfo(url, urlLoadStartTime))
 
-        return result
+        return result!!
     }
 
     fun restoreTab(tab: TabView) {
@@ -885,7 +885,7 @@ class MainController private constructor(context: Context, eventHandler: EventHa
     }
 
     fun showBadge(show: Boolean) {
-        val tabCount = mBubbleFlowDraggable.activeTabCount
+        val tabCount = mBubbleFlowDraggable.getActiveTabCount()
         mBubbleDraggable.mBadgeView.setCount(tabCount)
         if (show) {
             if (tabCount > 1 && mBubbleDraggable.currentMode == BubbleDraggable.Mode.BubbleView) {
@@ -925,7 +925,7 @@ class MainController private constructor(context: Context, eventHandler: EventHa
     }
 
     fun closeCurrentTab(action: Constant.BubbleAction, animateOff: Boolean): Boolean {
-        return closeTab(mBubbleFlowDraggable.currentTab, action, animateOff, true)
+        return closeTab(mBubbleFlowDraggable.getCurrentTab(), action, animateOff, true)
     }
 
     @JvmOverloads
@@ -960,7 +960,7 @@ class MainController private constructor(context: Context, eventHandler: EventHa
         val activeTabCount = activeTabCount
 
         if (activeTabCount > 0
-                && null != mBubbleFlowDraggable.currentTab
+                && null != mBubbleFlowDraggable.getCurrentTab()
                 && mBubbleFlowDraggable.isExpanded) {
             adjustBubblesPanel(0, 0, false, true)
         }
@@ -1164,7 +1164,7 @@ class MainController private constructor(context: Context, eventHandler: EventHa
                 MainApplication.postEvent(mContext, HideContentEvent())
                 MainApplication.postEvent(mContext, MainService.ShowUnhideNotificationEvent())
             } else {
-                MainApplication.postEvent(mContext, CurrentTabChangedEvent(mBubbleFlowDraggable.currentTab, true))
+                MainApplication.postEvent(mContext, CurrentTabChangedEvent(mBubbleFlowDraggable.getCurrentTab(), true))
                 MainApplication.postEvent(mContext, MainService.ShowDefaultNotificationEvent())
                 MainApplication.postEvent(mContext, UnhideContentEvent())
             }
@@ -1220,7 +1220,7 @@ class MainController private constructor(context: Context, eventHandler: EventHa
     }
 
     val currentTab: TabView?
-        get() = mBubbleFlowDraggable.currentTab
+        get() = mBubbleFlowDraggable.getCurrentTab()
 
     companion object {
         private const val TAG = "MainController"
