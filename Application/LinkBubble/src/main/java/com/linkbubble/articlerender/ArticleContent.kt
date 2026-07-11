@@ -79,9 +79,9 @@ class ArticleContent {
         fun extract(result: JResult): ArticleContent {
             val articleModeContent = ArticleContent()
 
-            var urlAsString = result.canonicalUrl
+            var urlAsString = result.getCanonicalUrl()
             if (urlAsString == null || urlAsString.isEmpty()) {
-                urlAsString = result.url
+                urlAsString = result.getUrl()
             }
             try {
                 articleModeContent.mUrl = URL(urlAsString)
@@ -90,7 +90,7 @@ class ArticleContent {
                 return articleModeContent
             }
 
-            articleModeContent.mText = result.text
+            articleModeContent.mText = result.getText()
             if (articleModeContent.mText!!.isEmpty()) {
                 return articleModeContent
             }
@@ -130,14 +130,14 @@ class ArticleContent {
             var bodyHtml = "<body >\n" +
                     "    <div style=\"margin:0px " + bodyHMargin + " 0px " + bodyHMargin + "\">\n"
 
-            val title = result.title
+            val title = result.getTitle()
             if (title != null) {
                 headHtml += "<title>$title</title>"
                 bodyHtml += "<p style=\"font-size:$titleFontSize;line-height:120%;font-weight:bold;margin:$titleTopMargin 0px 12px 0px\">$title</p>"
             }
 
-            val authorName = result.authorName
-            val publishedDate = result.date
+            val authorName = result.getAuthorName()
+            val publishedDate = result.getDate()
 
             var leftString = ""
             var rightString = ""
@@ -160,7 +160,7 @@ class ArticleContent {
             bodyHtml += "<hr style=\"border: 0;height: 0; border-top: 1px solid rgba(0, 0, 0, 0.1); border-bottom: 1px solid rgba(255, 255, 255, 0.3);\">" +
                     "<div id=\"lbInfo\"><div id=\"lbInfoL\">" + leftString + "</div><div id=\"lbInfoR\">" + rightString + "</div></div>"
 
-            val html = result.html
+            val html = result.getHtml()
             if (html != null) {
                 bodyHtml += html
             }
