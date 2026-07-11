@@ -20,6 +20,13 @@ class DraggableHelper(
         private val mOnTouchActionEventListener: OnTouchActionEventListener?
 ) {
 
+    companion object {
+        // Below this duration, an animation is a live touch-drag follow or a brief snap-hover
+        // adjustment - cheap enough (few frames) that moving the real window directly is fine, and
+        // not worth paying two extra window resizes (grow + shrink) for the windowed-translation path.
+        private const val MIN_ANIM_DURATION_FOR_WINDOW_EXPANSION = 0.15f
+    }
+
     enum class AnimationType {
         Linear,
         SmallOvershoot,
@@ -86,6 +93,18 @@ class DraggableHelper(
     private var mStartTouchX = -1
     private var mStartTouchY = -1
     private var mAnimationListener: AnimationEventListener? = null
+
+    // The window's real WindowManager position/size, kept in sync with mLogicalX/mLogicalY except
+    // during a "windowed" animation (see beginWindowExpansion), where the real window is grown once
+    // to cover the whole travel path and the view is translated within it instead of being moved via
+    // a WindowManager IPC call every frame - see the AnimationType-vs-duration gating in setTargetPos.
+    private var mLogicalX = mWindowManagerParams.x
+    private var mLogicalY = mWindowManagerParams.y
+    private val mOriginalWidth = mWindowManagerParams.width
+    private val mOriginalHeight = mWindowManagerParams.height
+    private var mWindowExpanded = false
+    private var mWindowOriginX = 0
+    private var mWindowOriginY = 0
 
     interface AnimationEventListener {
         fun onAnimationComplete()
@@ -241,17 +260,76 @@ class DraggableHelper(
         // TODO: This probably fires. It can be disabled temporarily if a pain, but should be fixed.
         Util.Assert(mAnimationListener == null, "non-null mAnimationListener")
 
+        endWindowExpansion(mLogicalX, mLogicalY)
+
         mInitialX = -1
         mInitialY = -1
 
-        mTargetX = mWindowManagerParams.x
-        mTargetY = mWindowManagerParams.y
+        mTargetX = mLogicalX
+        mTargetY = mLogicalY
 
         mAnimPeriod = 0.0f
         mAnimTime = 0.0f
     }
 
+    // Grows the real overlay window once to cover the whole [fromX,fromY]-[toX,toY] travel
+    // rectangle and switches to translating the view within it, instead of moving the real
+    // window (a WindowManager IPC call) on every animation frame. Only worth it for animations
+    // long enough to have many frames - short/continuous ones (live touch-drag follows, snap-hover
+    // micro adjustments) are cheaper to just move directly, and DistanceProportion specifically is
+    // always a live-touch-drag follow, never a discrete transition.
+    private fun beginWindowExpansion(fromX: Int, fromY: Int, toX: Int, toY: Int, duration: Float, type: AnimationType) {
+        if (!mAlive || type == AnimationType.DistanceProportion || duration < MIN_ANIM_DURATION_FOR_WINDOW_EXPANSION) {
+            return
+        }
+
+        val left = Math.min(fromX, toX)
+        val top = Math.min(fromY, toY)
+        mWindowOriginX = left
+        mWindowOriginY = top
+
+        mWindowManagerParams.x = left
+        mWindowManagerParams.y = top
+        mWindowManagerParams.width = Math.max(fromX, toX) - left + mOriginalWidth
+        mWindowManagerParams.height = Math.max(fromY, toY) - top + mOriginalHeight
+        mWindowManagerParams.flags = mWindowManagerParams.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+        MainController.updateRootWindowLayout(mView, mWindowManagerParams)
+
+        mView.translationX = (fromX - mWindowOriginX).toFloat()
+        mView.translationY = (fromY - mWindowOriginY).toFloat()
+
+        mWindowExpanded = true
+    }
+
+    // Shrinks the real overlay window back to its normal bubble-sized bounds at (finalX, finalY)
+    // and clears the view translation used during an expanded-window animation. Safe to call even
+    // when no expansion is active (e.g. from clearTargetPos()/setExactPos() on the common path).
+    private fun endWindowExpansion(finalX: Int, finalY: Int) {
+        if (!mWindowExpanded) {
+            return
+        }
+        mWindowExpanded = false
+
+        mView.translationX = 0f
+        mView.translationY = 0f
+
+        if (mAlive) {
+            mWindowManagerParams.x = finalX
+            mWindowManagerParams.y = finalY
+            mWindowManagerParams.width = mOriginalWidth
+            mWindowManagerParams.height = mOriginalHeight
+            mWindowManagerParams.flags = mWindowManagerParams.flags and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE.inv()
+            MainController.updateRootWindowLayout(mView, mWindowManagerParams)
+        }
+    }
+
     fun setExactPos(x: Int, y: Int) {
+        if (mWindowExpanded) {
+            endWindowExpansion(x, y)
+        }
+        mLogicalX = x
+        mLogicalY = y
+
         if (mWindowManagerParams.x == x && mWindowManagerParams.y == y) {
             return
         }
@@ -279,12 +357,14 @@ class DraggableHelper(
 
         if (xIn != mTargetX || yIn != mTargetY) {
 
+            val originalType = typeIn
+
             if (typeIn == AnimationType.DistanceProportion) {
                 // Something > 0.016 will have a high likelihood of causing < 60fps
                 val maxTime = 0.005f
                 val maxDistance = 50.0f
 
-                val d = Util.distance(xIn.toFloat(), yIn.toFloat(), mWindowManagerParams.x.toFloat(), mWindowManagerParams.y.toFloat())
+                val d = Util.distance(xIn.toFloat(), yIn.toFloat(), mLogicalX.toFloat(), mLogicalY.toFloat())
                 tIn = maxTime * d / maxDistance
                 tIn = maxTime - Util.clamp(0.0f, tIn, maxTime)
                 typeIn = AnimationType.Linear
@@ -296,14 +376,16 @@ class DraggableHelper(
             } else {
                 mAnimType = typeIn
 
-                mInitialX = mWindowManagerParams.x
-                mInitialY = mWindowManagerParams.y
+                mInitialX = mLogicalX
+                mInitialY = mLogicalY
 
                 mTargetX = xIn
                 mTargetY = yIn
 
                 mAnimPeriod = tIn
                 mAnimTime = 0.0f
+
+                beginWindowExpansion(mInitialX, mInitialY, mTargetX, mTargetY, tIn, originalType)
             }
 
             MainController.get()?.scheduleUpdate()
@@ -314,11 +396,11 @@ class DraggableHelper(
     }
 
     fun getXPos(): Int {
-        return mWindowManagerParams.x
+        return mLogicalX
     }
 
     fun getYPos(): Int {
-        return mWindowManagerParams.y
+        return mLogicalY
     }
 
     fun getWindowManagerParams(): WindowManager.LayoutParams {
@@ -356,7 +438,13 @@ class DraggableHelper(
             val x = (mInitialX + (mTargetX - mInitialX) * interpolatedFraction).toInt()
             val y = (mInitialY + (mTargetY - mInitialY) * interpolatedFraction).toInt()
 
-            if (mWindowManagerParams.x != x || mWindowManagerParams.y != y) {
+            mLogicalX = x
+            mLogicalY = y
+
+            if (mWindowExpanded) {
+                mView.translationX = (x - mWindowOriginX).toFloat()
+                mView.translationY = (y - mWindowOriginY).toFloat()
+            } else if (mWindowManagerParams.x != x || mWindowManagerParams.y != y) {
                 mWindowManagerParams.x = x
                 mWindowManagerParams.y = y
                 MainController.updateRootWindowLayout(mView, mWindowManagerParams)
@@ -367,6 +455,7 @@ class DraggableHelper(
             if (mAnimTime >= mAnimPeriod) {
                 mAnimTime = 0.0f
                 mAnimPeriod = 0.0f
+                endWindowExpansion(mTargetX, mTargetY)
                 val l = mAnimationListener
                 if (l != null) {
                     mAnimationListener = null

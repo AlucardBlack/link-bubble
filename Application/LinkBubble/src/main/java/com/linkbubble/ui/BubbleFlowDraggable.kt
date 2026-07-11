@@ -275,12 +275,17 @@ class BubbleFlowDraggable @JvmOverloads constructor(
     }
 
     fun syncWithBubble(draggable: Draggable) {
-        val draggableParams = draggable.draggableHelper.getWindowManagerParams()
+        // Use the bubble's logical position/size rather than its real WindowManager params directly -
+        // during a windowed animation (see DraggableHelper.beginWindowExpansion) the real window is
+        // temporarily grown to cover the whole travel path, so its raw x/y/width/height no longer
+        // reflect where the bubble is actually drawn.
+        val bubbleX = draggable.draggableHelper.getXPos()
+        val bubbleY = draggable.draggableHelper.getYPos()
 
-        val xOffset = (draggableParams!!.width - mBubbleFlowWidth) / 2
-        val yOffset = (draggableParams.height - mBubbleFlowHeight) / 2
+        val xOffset = (Config.mBubbleWidth.toInt() - mBubbleFlowWidth) / 2
+        val yOffset = (Config.mBubbleHeight.toInt() - mBubbleFlowHeight) / 2
 
-        mDraggableHelper.setExactPos(draggableParams.x + xOffset, draggableParams.y + yOffset)
+        mDraggableHelper.setExactPos(bubbleX + xOffset, bubbleY + yOffset)
     }
 
     override fun onOrientationChanged() {
