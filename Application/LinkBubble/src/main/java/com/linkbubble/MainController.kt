@@ -373,7 +373,7 @@ class MainController private constructor(context: Context, eventHandler: EventHa
             animator.addListener(object : Animator.AnimatorListener {
                 override fun onAnimationStart(animator: Animator) {
                     if (!mHeightSizeTopMargin) {
-                        if (mBubbleFlowDraggable.isExpanded) {
+                        if (mBubbleFlowDraggable.isExpanded()) {
                             mBubbleFlowDraggable.visibility = View.VISIBLE
                         }
                     }
@@ -381,7 +381,7 @@ class MainController private constructor(context: Context, eventHandler: EventHa
 
                 override fun onAnimationEnd(animator: Animator) {
                     if (!mHeightSizeTopMargin) {
-                        if (mBubbleFlowDraggable.isExpanded) {
+                        if (mBubbleFlowDraggable.isExpanded()) {
                             mBubbleFlowDraggable.visibility = View.VISIBLE
                         }
                     } else {
@@ -520,7 +520,7 @@ class MainController private constructor(context: Context, eventHandler: EventHa
         mBubbleFlowDraggable.setTouchInterceptor(mBubbleFlowTouchInterceptor)
         mBubbleFlowDraggable.collapse(Constant.BUBBLE_ANIM_TIME.toLong(), mOnBubbleFlowCollapseFinishedListener)
         mBubbleDraggable.visibility = View.VISIBLE
-        if (mBubbleFlowDraggable.touchInterceptor != null) {
+        if (mBubbleFlowDraggable.getTouchInterceptor() != null) {
             mBubbleFlowDraggable.setInterceptingTouch(true)
         }
     }
@@ -949,7 +949,7 @@ class MainController private constructor(context: Context, eventHandler: EventHa
         tabView.mIsClosing = true
 
         val contentViewShowing = contentViewShowing()
-        if (contentViewShowing && mBubbleFlowDraggable.visibility == View.GONE && mBubbleFlowDraggable.isExpanded) {
+        if (contentViewShowing && mBubbleFlowDraggable.visibility == View.GONE && mBubbleFlowDraggable.isExpanded()) {
             mBubbleFlowDraggable.visibility = View.VISIBLE
         }
         CrashTracking.log("MainController.closeTab(): action:" + action.toString() + ", contentViewShowing:" + contentViewShowing
@@ -961,7 +961,7 @@ class MainController private constructor(context: Context, eventHandler: EventHa
 
         if (activeTabCount > 0
                 && null != mBubbleFlowDraggable.getCurrentTab()
-                && mBubbleFlowDraggable.isExpanded) {
+                && mBubbleFlowDraggable.isExpanded()) {
             adjustBubblesPanel(0, 0, false, true)
         }
 
@@ -1073,7 +1073,7 @@ class MainController private constructor(context: Context, eventHandler: EventHa
                             .start()
                 }
             }
-            if (mBubbleFlowDraggable.isExpanded) {
+            if (mBubbleFlowDraggable.isExpanded()) {
                 mBubbleFlowDraggable.visibility = View.VISIBLE
             }
         } catch (exc: NullPointerException) {
