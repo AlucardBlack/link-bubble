@@ -14,14 +14,14 @@ class WebRendererContextWrapper(base: Context) : ContextWrapper(base) {
 
     override fun getTheme(): Resources.Theme {
         if (Constant.ACTIVITY_WEBVIEW_RENDERING && ExpandedActivity.get() != null) {
-            return ExpandedActivity.get().theme
+            return ExpandedActivity.get()!!.theme
         }
         return super.getTheme()
     }
 
     override fun getSystemService(name: String): Any? {
         if (Constant.ACTIVITY_WEBVIEW_RENDERING && ExpandedActivity.get() != null) {
-            return ExpandedActivity.get().getSystemService(name)
+            return ExpandedActivity.get()!!.getSystemService(name)
         }
         return super.getSystemService(name)
     }

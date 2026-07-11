@@ -65,7 +65,7 @@ open class ContentViewButton @JvmOverloads constructor(
         return mMaxIconSize
     }
 
-    fun setImageDrawable(drawableIn: Drawable) {
+    fun setImageDrawable(drawableIn: Drawable?) {
         var drawable = drawableIn
 
         if (drawable is BitmapDrawable) {

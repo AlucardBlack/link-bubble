@@ -921,7 +921,7 @@ class Settings private constructor(private val mContext: Context) {
         val jsonArray = JSONArray()
         if (bubbles != null) {
             for (view in bubbles) {
-                val url = (view as TabView).url
+                val url = (view as TabView).getUrl()
                 if (url.toString() != Constant.NEW_TAB_URL) {
                     jsonArray.put(url.toString())
                 }

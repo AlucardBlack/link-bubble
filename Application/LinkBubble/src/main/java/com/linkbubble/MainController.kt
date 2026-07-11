@@ -181,8 +181,8 @@ class MainController private constructor(context: Context, eventHandler: EventHa
     val mOnBubbleFlowExpandFinishedListener: BubbleFlowView.AnimationEventListener = object : BubbleFlowView.AnimationEventListener {
         override fun onAnimationEnd(sender: BubbleFlowView) {
             val currentTab = (sender as BubbleFlowDraggable).currentTab
-            if (currentTab != null && currentTab.contentView != null) {
-                currentTab.contentView.saveLoadTime()
+            if (currentTab != null && currentTab.getContentView() != null) {
+                currentTab.getContentView()!!.saveLoadTime()
             }
         }
     }
@@ -955,7 +955,7 @@ class MainController private constructor(context: Context, eventHandler: EventHa
         CrashTracking.log("MainController.closeTab(): action:" + action.toString() + ", contentViewShowing:" + contentViewShowing
                 + ", visibleTabCount:" + visibleTabCount + ", activeTabCount:" + activeTabCount + ", canShowUndoPrompt:" + canShowUndoPrompt
                 + ", animateOff:" + animateOff + ", canShowUndoPrompt:" + canShowUndoPrompt)
-        mBubbleFlowDraggable.closeTab(tabView, animateOff, action, tabView.totalTrackedLoadTime)
+        mBubbleFlowDraggable.closeTab(tabView, animateOff, action, tabView.getTotalTrackedLoadTime())
 
         val activeTabCount = activeTabCount
 
@@ -991,8 +991,8 @@ class MainController private constructor(context: Context, eventHandler: EventHa
 
     private fun showClosePrompt(tabView: TabView) {
         var title: String? = null
-        if (tabView.url != null && MainApplication.sTitleHashMap != null) {
-            val urlAsString = tabView.url.toString()
+        if (tabView.getUrl() != null && MainApplication.sTitleHashMap != null) {
+            val urlAsString = tabView.getUrl().toString()
             title = MainApplication.sTitleHashMap?.get(urlAsString)
         }
         val message: String
@@ -1011,7 +1011,7 @@ class MainController private constructor(context: Context, eventHandler: EventHa
                         if (!tabView.mWasRestored) {
                             tabView.mIsClosing = false
                             restoreTab(tabView)
-                            tabView.contentView.onRestored()
+                            tabView.getContentView()!!.onRestored()
                         }
                     }
 

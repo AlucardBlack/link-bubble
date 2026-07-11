@@ -481,7 +481,7 @@ class WebViewRenderer(context: Context, controller: Controller, webRendererPlace
             val tabView = MainController.get()!!.openUrl(Constant.NEW_TAB_URL, System.currentTimeMillis(), false, Analytics.OPENED_URL_FROM_NEW_WINDOW)
             if (tabView != null) {
                 val transport = resultMsg.obj as WebView.WebViewTransport
-                transport.webView = tabView.contentView.webRenderer.getView() as WebView
+                transport.webView = tabView.getContentView()!!.webRenderer.getView() as WebView
                 resultMsg.sendToTarget()
                 return true
             }
