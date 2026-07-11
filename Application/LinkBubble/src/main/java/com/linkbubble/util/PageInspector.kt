@@ -62,7 +62,7 @@ class PageInspector(
         if (mScriptCache == null) {
             var scriptCache = "javascript:(function() {\n"
 
-            if (MainController.get() == null || !MainController.get().hasStableWebViewForSelects(mContext)) {
+            if (MainController.get() == null || !MainController.get()!!.hasStableWebViewForSelects(mContext)) {
                 scriptCache += getFileContents("SelectElements")
             }
 

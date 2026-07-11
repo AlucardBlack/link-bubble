@@ -249,7 +249,7 @@ class MainService : Service() {
     private val mDialogReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, myIntent: Intent) {
             if (myIntent.action == Intent.ACTION_CLOSE_SYSTEM_DIALOGS) {
-                MainController.get().onCloseSystemDialogs()
+                MainController.get()!!.onCloseSystemDialogs()
             }
         }
     }
@@ -257,14 +257,14 @@ class MainService : Service() {
     private val mBroadcastReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, myIntent: Intent) {
             if (myIntent.action == BCAST_CONFIGCHANGED) {
-                MainController.get().onOrientationChanged()
+                MainController.get()!!.onOrientationChanged()
             }
         }
     }
 
     private val mScreenReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            MainController.get().updateScreenState(intent.action)
+            MainController.get()!!.updateScreenState(intent.action!!)
         }
     }
 

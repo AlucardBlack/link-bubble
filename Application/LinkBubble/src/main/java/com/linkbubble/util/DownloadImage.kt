@@ -72,7 +72,7 @@ class DownloadImage(private val mContext: Context, private val mUrlAsString: Str
                 intent.setDataAndType(imageUri, "image/*")
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
                 mContext.startActivity(intent)
-                MainController.get().switchToBubbleView(false)
+                MainController.get()!!.switchToBubbleView(false)
             }
 
             override fun onClose() {
