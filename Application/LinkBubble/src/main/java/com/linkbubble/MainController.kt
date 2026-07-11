@@ -443,7 +443,7 @@ class MainController private constructor(context: Context, eventHandler: EventHa
 
     fun displayTab(tab: TabView): Boolean {
         if (!mBubbleDraggable.isDragging && mCanAutoDisplayLink) {
-            when (mBubbleDraggable.currentMode) {
+            when (mBubbleDraggable.getCurrentMode()) {
                 BubbleDraggable.Mode.BubbleView -> {
                     mBubbleFlowDraggable.setCenterItem(tab)
                     mBubbleDraggable.switchToExpandedView()
@@ -858,7 +858,7 @@ class MainController private constructor(context: Context, eventHandler: EventHa
         // Only do this if there's just 1 tab open. Fix #446
         if (activeTabCount == 1) {
             // If the bubble was closed when in BubbleView mode, forcibly reset to Bubble mode
-            if (mBubbleDraggable.currentMode == BubbleDraggable.Mode.BubbleView) {
+            if (mBubbleDraggable.getCurrentMode() == BubbleDraggable.Mode.BubbleView) {
                 mBubbleDraggable.visibility = View.VISIBLE
                 collapseBubbleFlow(0)
                 mBubbleFlowDraggable.visibility = View.GONE
@@ -888,7 +888,7 @@ class MainController private constructor(context: Context, eventHandler: EventHa
         val tabCount = mBubbleFlowDraggable.getActiveTabCount()
         mBubbleDraggable.mBadgeView.setCount(tabCount)
         if (show) {
-            if (tabCount > 1 && mBubbleDraggable.currentMode == BubbleDraggable.Mode.BubbleView) {
+            if (tabCount > 1 && mBubbleDraggable.getCurrentMode() == BubbleDraggable.Mode.BubbleView) {
                 mBubbleDraggable.mBadgeView.show()
             }
         } else {
@@ -897,7 +897,7 @@ class MainController private constructor(context: Context, eventHandler: EventHa
     }
 
     fun contentViewShowing(): Boolean {
-        return mBubbleDraggable.currentMode == BubbleDraggable.Mode.ContentView
+        return mBubbleDraggable.getCurrentMode() == BubbleDraggable.Mode.ContentView
     }
 
     private var mLastOpenTabFromNotificationTime: Long = -1
@@ -1157,7 +1157,7 @@ class MainController private constructor(context: Context, eventHandler: EventHa
         if (mHiddenByUser != hiddenByUser) {
             mHiddenByUser = hiddenByUser
             if (mHiddenByUser) {
-                when (mBubbleDraggable.currentMode) {
+                when (mBubbleDraggable.getCurrentMode()) {
                     BubbleDraggable.Mode.ContentView -> mBubbleDraggable.snapToBubbleView()
                     else -> {}
                 }
