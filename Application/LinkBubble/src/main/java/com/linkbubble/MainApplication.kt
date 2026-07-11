@@ -98,7 +98,7 @@ class MainApplication : Application() {
         val settings = Settings.get()
         if (null != settings && settings.showNewBraveBrowserNotification()) {
             // Check if there is a new Brave Browser already installed
-            val browsersPackageNames = settings.browserPackageNames
+            val browsersPackageNames = settings.getBrowserPackageNames()
             if (null != browsersPackageNames && !browsersPackageNames.contains(resources.getString(R.string.tab_based_browser_id_name))) {
                 showNewBraveBrowserHiddenNotification()
             }
@@ -501,7 +501,7 @@ class MainApplication : Application() {
                 }
 
                 // TODO: Retrieve the class name below from the app in case Twitter ever change it.
-                val intent = Util.getSendIntent(consumePackageName, consumeName, urlAsString)
+                val intent = Util.getSendIntent(consumePackageName!!, consumeName!!, urlAsString)
                 try {
                     context.startActivity(intent)
                     if (totalTrackedLoadTime > -1) {
@@ -516,8 +516,8 @@ class MainApplication : Application() {
             } else if (actionType == Constant.ActionType.View) {
                 val consumePackageName = Settings.get().getConsumeBubblePackageName(action)
                 CrashTracking.log("MainApplication.handleBubbleAction() action:$action, consumePackageName:$consumePackageName")
-                result = loadIntent(context, consumePackageName,
-                        Settings.get().getConsumeBubbleActivityClassName(action), urlAsString, -1, true)
+                result = loadIntent(context, consumePackageName!!,
+                        Settings.get().getConsumeBubbleActivityClassName(action)!!, urlAsString, -1, true)
             } else if (action == BubbleAction.Close || action == BubbleAction.BackButton) {
                 CrashTracking.log("MainApplication.handleBubbleAction() action:$action")
                 result = true

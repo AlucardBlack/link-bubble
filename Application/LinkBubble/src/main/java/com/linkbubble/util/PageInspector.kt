@@ -277,7 +277,7 @@ class PageInspector(
             var fetchPageHtml = false
             try {
                 val currentUrl = URL(windowUrl)
-                fetchPageHtml = (Settings.get().articleModeEnabled || Settings.get().articleModeOnWearEnabled)
+                fetchPageHtml = (Settings.get().getArticleModeEnabled() || Settings.get().getArticleModeOnWearEnabled())
                         && ArticleContent.tryForArticleContent(currentUrl)
             } catch (e: MalformedURLException) {
             }
