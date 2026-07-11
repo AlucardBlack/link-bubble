@@ -38,7 +38,6 @@ class BubbleDraggable @JvmOverloads constructor(
     private val mBeginBubbleDragEvent = MainController.BeginBubbleDragEvent()
     private val mDraggableBubbleMovedEvent = MainController.DraggableBubbleMovedEvent()
     private val mEndBubbleDragEvent = MainController.EndBubbleDragEvent()
-    private val mEndExpandTransitionEvent = MainController.EndExpandTransitionEvent()
     private val mBeginCollapseTransitionEvent = MainController.BeginCollapseTransitionEvent()
     private val mEndCollapseTransitionEvent = MainController.EndCollapseTransitionEvent()
 
@@ -363,7 +362,6 @@ class BubbleDraggable @JvmOverloads constructor(
                     MainApplication.postEvent(context, ExpandedActivity.MinimizeExpandedActivityEvent())
                     CrashTracking.log("doAnimateToContentView(): onAnimationComplete(): getActiveTabCount()==0")
                 } else {
-                    MainApplication.postEvent(context, mEndExpandTransitionEvent)
                     CrashTracking.log("doAnimateToContentView(): onAnimationComplete(): getActiveTabCount():$activeCount")
                 }
             }
@@ -376,6 +374,15 @@ class BubbleDraggable @JvmOverloads constructor(
         })
         mainController!!.beginAppPolling()
         mainController.expandBubbleFlow((contentPeriod * 1000).toLong(), true)
+        if (!Constant.ACTIVITY_WEBVIEW_RENDERING) {
+            // Launch ExpandedActivity (an invisible, focusable placeholder that lets the overlay's
+            // WebView receive input/keyboard/back-press) now, in parallel with the bubble-flight
+            // animation, instead of waiting for it to finish. ExpandedActivity draws nothing itself,
+            // so overlapping its real Activity-launch latency with the animation the user is already
+            // watching removes what used to be a serial, post-animation stall before the expanded
+            // bubble became interactive.
+            mainController.showExpandedActivity()
+        }
     }
 
     fun configure(x0: Int, y0: Int, targetX: Int, targetY: Int, targetTime: Int, cv: CanvasView) {

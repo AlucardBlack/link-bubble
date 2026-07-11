@@ -66,8 +66,6 @@ class MainController private constructor(context: Context, eventHandler: EventHa
         @JvmField var mPeriod = 0f
     }
 
-    class EndExpandTransitionEvent
-
     class BeginCollapseTransitionEvent @JvmOverloads constructor(@JvmField var mFromCloseSystemDialogs: Boolean = false) {
         @JvmField var mPeriod = 0f
     }
@@ -477,14 +475,6 @@ class MainController private constructor(context: Context, eventHandler: EventHa
     @Subscribe
     fun onBeginExpandTransition(e: BeginExpandTransitionEvent) {
         showBadge(false)
-    }
-
-    @Suppress("unused")
-    @Subscribe
-    fun onEndExpandTransition(e: EndExpandTransitionEvent) {
-        if (!Constant.ACTIVITY_WEBVIEW_RENDERING) {
-            showExpandedActivity()
-        }
     }
 
     @Suppress("unused")
