@@ -36,7 +36,7 @@ abstract class WebRenderer(context: Context, controller: WebRenderer.Controller,
         fun onPageInspectorTouchIconLoaded(bitmap: Bitmap, pageUrl: String?)
         fun onPageInspectorDropDownWarningClick()
         fun onPagedInspectorThemeColorFound(color: Int)
-        fun onArticleContentReady(articleContent: ArticleContent)
+        fun onArticleContentReady(articleContent: ArticleContent?)
     }
 
     enum class Type {

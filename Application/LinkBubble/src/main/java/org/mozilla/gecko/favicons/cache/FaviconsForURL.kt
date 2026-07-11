@@ -2,54 +2,40 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-package org.mozilla.gecko.favicons.cache;
+package org.mozilla.gecko.favicons.cache
 
-import android.graphics.Bitmap;
-import android.util.Log;
-import com.linkbubble.util.CrashTracking;
-import org.mozilla.gecko.gfx.BitmapUtils;
+import android.graphics.Bitmap
+import android.util.Log
+import com.linkbubble.util.CrashTracking
+import org.mozilla.gecko.gfx.BitmapUtils
+import java.util.Collections
 
-import java.util.ArrayList;
-import java.util.Collections;
+class FaviconsForURL @JvmOverloads constructor(size: Int, @JvmField val mHasFailed: Boolean = false) {
 
-public class FaviconsForURL {
-    private static final String LOGTAG = "FaviconForURL";
+    @Volatile
+    private var mDominantColor = -1
 
-    private volatile int mDominantColor = -1;
+    val mDownloadTimestamp: Long = System.currentTimeMillis()
+    val mFavicons: ArrayList<FaviconCacheElement> = ArrayList(size)
 
-    final long mDownloadTimestamp;
-    final ArrayList<FaviconCacheElement> mFavicons;
-
-    public final boolean mHasFailed;
-
-    public FaviconsForURL(int size) {
-        this(size, false);
+    fun addSecondary(favicon: Bitmap?, imageSize: Int): FaviconCacheElement {
+        return addInternal(favicon, false, imageSize)
     }
 
-    public FaviconsForURL(int size, boolean hasFailed) {
-        mHasFailed = hasFailed;
-        mDownloadTimestamp = System.currentTimeMillis();
-        mFavicons = new ArrayList<FaviconCacheElement>(size);
+    fun addPrimary(favicon: Bitmap): FaviconCacheElement {
+        return addInternal(favicon, true, favicon.width)
     }
 
-    public FaviconCacheElement addSecondary(Bitmap favicon, int imageSize) {
-        return addInternal(favicon, false, imageSize);
-    }
+    private fun addInternal(favicon: Bitmap?, isPrimary: Boolean, imageSize: Int): FaviconCacheElement {
+        val c = FaviconCacheElement(favicon, isPrimary, imageSize, this)
 
-    public FaviconCacheElement addPrimary(Bitmap favicon) {
-        return addInternal(favicon, true, favicon.getWidth());
-    }
-
-    private FaviconCacheElement addInternal(Bitmap favicon, boolean isPrimary, int imageSize) {
-        FaviconCacheElement c = new FaviconCacheElement(favicon, isPrimary, imageSize, this);
-
-        int index = Collections.binarySearch(mFavicons, c);
+        var index = Collections.binarySearch(mFavicons, c)
         if (index < 0) {
-            index = 0;
+            index = 0
         }
-        mFavicons.add(index, c);
+        mFavicons.add(index, c)
 
-        return c;
+        return c
     }
 
     /**
@@ -59,18 +45,18 @@ public class FaviconsForURL {
      * @param targetSize Minimum size for the desired result.
      * @return The index of the smallest image larger than the target size, or -1 if none exists.
      */
-    public int getNextHighestIndex(int targetSize) {
+    fun getNextHighestIndex(targetSize: Int): Int {
         // Create a dummy object to hold the target value for comparable.
-        FaviconCacheElement dummy = new FaviconCacheElement(null, false, targetSize, null);
+        val dummy = FaviconCacheElement(null, false, targetSize, null)
 
-        int index = Collections.binarySearch(mFavicons, dummy);
+        var index = Collections.binarySearch(mFavicons, dummy)
 
         // The search routine returns the index of an element equal to dummy, if present.
         // Otherwise, it returns -x - 1, where x is the index in the ArrayList where dummy would be
         // inserted if the list were to remain sorted.
         if (index < 0) {
-            index++;
-            index = -index;
+            index++
+            index = -index
         }
 
         // index is now 'x', as described above.
@@ -79,11 +65,11 @@ public class FaviconsForURL {
         // present (So the "index at which it should be inserted" is the index after the end.
         // In this case, we set the sentinel value -1 to indicate that we just requested something
         // larger than all primaries.
-        if (index == mFavicons.size()) {
-            index = -1;
+        if (index == mFavicons.size) {
+            index = -1
         }
 
-        return index;
+        return index
     }
 
     /**
@@ -98,62 +84,66 @@ public class FaviconsForURL {
      * @return The FaviconCacheElement of the next valid primary from the given index. If none exists,
      *         then returns the previous valid primary. If none exists, returns null (Insanity.).
      */
-    public FaviconCacheElement getNextPrimary(final int fromIndex) {
-        final int numIcons = mFavicons.size();
+    fun getNextPrimary(fromIndex: Int): FaviconCacheElement? {
+        val numIcons = mFavicons.size
 
-        int searchIndex = fromIndex;
+        var searchIndex = fromIndex
         while (searchIndex < numIcons) {
-            FaviconCacheElement element = mFavicons.get(searchIndex);
+            val element = mFavicons[searchIndex]
 
             if (element.mIsPrimary) {
                 if (element.mInvalidated) {
                     // TODO: Replace with `return null` when ICO decoder is introduced.
-                    break;
+                    break
                 }
-                return element;
+                return element
             }
-            searchIndex++;
+            searchIndex++
         }
 
         // No larger primary available. Let's look for smaller ones...
-        searchIndex = fromIndex - 1;
+        searchIndex = fromIndex - 1
         while (searchIndex >= 0) {
-            FaviconCacheElement element = mFavicons.get(searchIndex);
+            val element = mFavicons[searchIndex]
 
             if (element.mIsPrimary) {
                 if (element.mInvalidated) {
-                    return null;
+                    return null
                 }
-                return element;
+                return element
             }
-            searchIndex--;
+            searchIndex--
         }
 
-        Log.e(LOGTAG, "No primaries found in Favicon cache structure. This is madness!");
+        Log.e(LOGTAG, "No primaries found in Favicon cache structure. This is madness!")
 
-        return null;
+        return null
     }
 
     /**
      * Ensure the dominant colour field is populated for this favicon.
      */
-    public int ensureDominantColor() {
+    fun ensureDominantColor(): Int {
         if (mDominantColor == -1) {
             // Find a payload, any payload, that is not invalidated.
-            for (FaviconCacheElement element : mFavicons) {
-                if (!element.mInvalidated && element.mFaviconPayload.isRecycled() == false) {
+            for (element in mFavicons) {
+                if (!element.mInvalidated && !element.mFaviconPayload!!.isRecycled) {
                     try {
-                        mDominantColor = BitmapUtils.getDominantColor(element.mFaviconPayload);
-                        return mDominantColor;
-                    } catch (IllegalStateException ex) {
+                        mDominantColor = BitmapUtils.getDominantColor(element.mFaviconPayload)
+                        return mDominantColor
+                    } catch (ex: IllegalStateException) {
                         // https://crashlytics.com/digital-ashes/android/apps/com.linkbubble.playstore/issues/532b555ffabb27481b16d958
-                        CrashTracking.logHandledException(ex);
+                        CrashTracking.logHandledException(ex)
                     }
                 }
             }
-            mDominantColor = 0xFFFFFF;
+            mDominantColor = 0xFFFFFF
         }
 
-        return mDominantColor;
+        return mDominantColor
+    }
+
+    companion object {
+        private const val LOGTAG = "FaviconForURL"
     }
 }

@@ -2,20 +2,29 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-package org.mozilla.gecko.favicons.cache;
+package org.mozilla.gecko.favicons.cache
 
-import android.graphics.Bitmap;
+import android.graphics.Bitmap
 
 /**
  * Objects stored in the Favicon cache - allow for the bitmap to be tagged to indicate if it has
  * been scaled. Unscaled bitmaps are not included in the scaled-bitmap cache's size calculation.
  */
-public class FaviconCacheElement implements Comparable<FaviconCacheElement> {
-    // Was this Favicon computed via scaling another primary Favicon, or is this a primary Favicon?
-    final boolean mIsPrimary;
+class FaviconCacheElement(
+        payload: Bitmap?,
+        // Was this Favicon computed via scaling another primary Favicon, or is this a primary Favicon?
+        val mIsPrimary: Boolean,
+        val mImageSize: Int,
+        // Used for LRU pruning.
+        val mBackpointer: FaviconsForURL?
+) : Comparable<FaviconCacheElement> {
+
+    constructor(payload: Bitmap?, isPrimary: Boolean, backpointer: FaviconsForURL?) : this(
+            payload, isPrimary, payload?.width ?: 0, backpointer
+    )
 
     // The Favicon bitmap.
-    Bitmap mFaviconPayload;
+    var mFaviconPayload: Bitmap? = payload
 
     // If set, mFaviconPayload is absent. Since the underlying ICO may contain multiple primary
     // payloads, primary payloads are never truly deleted from the cache, but instead have their
@@ -24,37 +33,14 @@ public class FaviconCacheElement implements Comparable<FaviconCacheElement> {
     // This means that when a request comes in that will be best served using a primary that is in
     // the database but no longer cached, we know that it exists and can go get it (Useful when ICO
     // support is added).
-    volatile boolean mInvalidated;
+    @Volatile
+    var mInvalidated: Boolean = false
 
-    final int mImageSize;
-
-    // Used for LRU pruning.
-    final FaviconsForURL mBackpointer;
-
-    public FaviconCacheElement(Bitmap payload, boolean isPrimary, int imageSize, FaviconsForURL backpointer) {
-        mFaviconPayload = payload;
-        mIsPrimary = isPrimary;
-        mImageSize = imageSize;
-        mBackpointer = backpointer;
-    }
-
-    public FaviconCacheElement(Bitmap payload, boolean isPrimary, FaviconsForURL backpointer) {
-        mFaviconPayload = payload;
-        mIsPrimary = isPrimary;
-        mBackpointer = backpointer;
-
-        if (payload != null) {
-            mImageSize = payload.getWidth();
-        } else {
-            mImageSize = 0;
-        }
-    }
-
-    public int sizeOf() {
+    fun sizeOf(): Int {
         if (mInvalidated) {
-            return 0;
+            return 0
         }
-        return mFaviconPayload.getRowBytes() * mFaviconPayload.getHeight();
+        return mFaviconPayload!!.rowBytes * mFaviconPayload!!.height
     }
 
     /**
@@ -66,28 +52,27 @@ public class FaviconCacheElement implements Comparable<FaviconCacheElement> {
      * @return -1 if this element is less than the given one, 1 if the other one is larger than this
      *         and 0 if both are of equal value.
      */
-    @Override
-    public int compareTo(FaviconCacheElement another) {
+    override fun compareTo(another: FaviconCacheElement): Int {
         if (mInvalidated && !another.mInvalidated) {
-            return -1;
+            return -1
         }
 
         if (!mInvalidated && another.mInvalidated) {
-            return 1;
+            return 1
         }
 
         if (mInvalidated) {
-            return 0;
+            return 0
         }
 
-        final int w1 = mImageSize;
-        final int w2 = another.mImageSize;
+        val w1 = mImageSize
+        val w2 = another.mImageSize
         if (w1 > w2) {
-            return 1;
+            return 1
         } else if (w2 > w1) {
-            return -1;
+            return -1
         }
-        return 0;
+        return 0
     }
 
     /**
@@ -95,21 +80,21 @@ public class FaviconCacheElement implements Comparable<FaviconCacheElement> {
      *
      * If primary, drop the payload and set invalid. If secondary, just unlink from parent node.
      */
-    public void onEvictedFromCache() {
+    fun onEvictedFromCache() {
         if (mIsPrimary) {
             // So we keep a record of which primaries exist in the database for this URL, we
             // don't actually delete the entry for primaries. Instead, we delete their payload
             // and flag them as invalid. This way, we can later figure out that what a request
             // really want is one of the primaries that have been dropped from the cache, and we
             // can go get it.
-            mInvalidated = true;
-            mFaviconPayload = null;
+            mInvalidated = true
+            mFaviconPayload = null
         } else {
             // Secondaries don't matter - just delete them.
             if (mBackpointer == null) {
-                return;
+                return
             }
-            mBackpointer.mFavicons.remove(this);
+            mBackpointer.mFavicons.remove(this)
         }
     }
 }

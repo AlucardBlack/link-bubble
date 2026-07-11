@@ -93,9 +93,9 @@ class WebViewRenderer(context: Context, controller: Controller, webRendererPlace
                 if (mBuildArticleContentTask == null) {
                     mBuildArticleContentTask = ArticleContent.fetchArticleContent(getUrl().toString(), html,
                             object : ArticleContent.OnFinishedListener {
-                                override fun onFinished(articleContent: ArticleContent) {
+                                override fun onFinished(articleContent: ArticleContent?) {
                                     mArticleContent = articleContent
-                                    mController.onArticleContentReady(mArticleContent!!)
+                                    mController.onArticleContentReady(mArticleContent)
                                     mBuildArticleContentTask = null
                                 }
                             }
