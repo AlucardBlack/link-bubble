@@ -2,18 +2,15 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-package com.linkbubble.ui;
+package com.linkbubble.ui
 
-import android.app.Activity;
-import android.os.Bundle;
+import android.app.Activity
+import android.os.Bundle
 
-import com.linkbubble.util.CrashTracking;
+class DownloadHandlerActivity : Activity() {
 
-public class DownloadHandlerActivity extends Activity {
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
 
         /*
          * This activity doesn't actually do anything. It exists solely so that it's componentEnabled flag can be turned on
@@ -28,7 +25,6 @@ public class DownloadHandlerActivity extends Activity {
             MainApplication.openInBrowser(this, intent, true);
         }*/
 
-        finish();
+        finish()
     }
-
 }
