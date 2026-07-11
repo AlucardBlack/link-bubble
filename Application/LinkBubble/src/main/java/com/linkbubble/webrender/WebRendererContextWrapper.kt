@@ -2,37 +2,28 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-package com.linkbubble.webrender;
+package com.linkbubble.webrender
 
+import android.content.Context
+import android.content.ContextWrapper
+import android.content.res.Resources
+import com.linkbubble.Constant
+import com.linkbubble.ui.ExpandedActivity
 
-import android.content.Context;
-import android.content.ContextWrapper;
-import android.content.res.Resources;
+class WebRendererContextWrapper(base: Context) : ContextWrapper(base) {
 
-import com.linkbubble.Constant;
-import com.linkbubble.ui.ExpandedActivity;
-
-
-class WebRendererContextWrapper extends ContextWrapper {
-
-    public WebRendererContextWrapper(Context base) {
-        super(base);
+    override fun getTheme(): Resources.Theme {
+        if (Constant.ACTIVITY_WEBVIEW_RENDERING && ExpandedActivity.get() != null) {
+            return ExpandedActivity.get().theme
+        }
+        return super.getTheme()
     }
 
-    @Override
-    public Resources.Theme getTheme() {
+    override fun getSystemService(name: String): Any? {
         if (Constant.ACTIVITY_WEBVIEW_RENDERING && ExpandedActivity.get() != null) {
-            return ExpandedActivity.get().getTheme();
+            return ExpandedActivity.get().getSystemService(name)
         }
-        return super.getTheme();
-    }
-
-    @Override
-    public Object getSystemService(String name) {
-        if (Constant.ACTIVITY_WEBVIEW_RENDERING && ExpandedActivity.get() != null) {
-            return ExpandedActivity.get().getSystemService(name);
-        }
-        return super.getSystemService(name);
+        return super.getSystemService(name)
     }
 
         /*
@@ -64,7 +55,7 @@ class WebRendererContextWrapper extends ContextWrapper {
             super.startActivity(intent, options);
         }*/
 
-    public Resources getResources() {
-        return getBaseContext().getResources();
+    override fun getResources(): Resources {
+        return baseContext.resources
     }
 }
