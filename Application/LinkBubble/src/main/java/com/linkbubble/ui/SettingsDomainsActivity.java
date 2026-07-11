@@ -26,6 +26,7 @@ import android.widget.TextView;
 
 import com.linkbubble.R;
 import com.linkbubble.Settings;
+import com.linkbubble.util.Util;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -61,6 +62,7 @@ public class SettingsDomainsActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitle(R.string.preference_domains_title);
         setSupportActionBar(toolbar);
+        Util.padForStatusBarInset(toolbar);
         toolbar.setNavigationIcon(R.drawable.ic_arrow_back_white_24dp);
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override

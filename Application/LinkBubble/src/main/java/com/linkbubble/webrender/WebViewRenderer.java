@@ -24,6 +24,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import androidx.core.content.ContextCompat;
 import android.webkit.ConsoleMessage;
 import android.webkit.CookieManager;
 import android.webkit.DownloadListener;
@@ -561,7 +562,7 @@ class WebViewRenderer extends WebRenderer {
 
                 IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
                 NetworkReceiver receiver = new NetworkReceiver(WebViewRenderer.this);
-                mContext.registerReceiver(receiver, filter);
+                ContextCompat.registerReceiver(mContext, receiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED);
                 mLastNetworkReceiver = receiver;
             }
             mController.onReceivedError();

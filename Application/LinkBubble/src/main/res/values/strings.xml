@@ -337,6 +337,7 @@
 
     <string name="service_name">Link Bubble Renderer</string>
     <string name="notification_title">Link Bubble</string>
+    <string name="notification_channel_name">Link Bubble</string>
 
     <string name="store_listing_title">Link Bubble</string>
     <string name="store_listing_promo_text">Mobile browsing done right.</string>
@@ -396,5 +397,6 @@
 
     <string name="grant_overlay_permission_message">Link Bubble needs permission to display over other apps to show the bubble. Tap below to grant it.</string>
     <string name="grant_overlay_permission_button">Open Settings</string>
+    <string name="overlay_permission_required">Link Bubble needs the \"display over other apps\" permission to show bubbles</string>
 
 </resources>

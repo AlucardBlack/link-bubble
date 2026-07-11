@@ -24,6 +24,8 @@ import android.net.Uri;
 import android.os.Build;
 import androidx.annotation.DrawableRes;
 import androidx.core.graphics.drawable.DrawableCompat;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.View;
@@ -58,6 +60,23 @@ public class Util {
         if (!condition) {
             throw new AssertionError(message);
         }
+    }
+
+    // Modern Android (targeting API 35+) draws content edge-to-edge behind the status bar by
+    // default, and the old windowOptOutEdgeToEdgeEnforcement manifest escape hatch stops working
+    // on newer OS releases. Pad the given view (typically a Toolbar) by the status bar inset so
+    // its content isn't drawn underneath - and isn't unreachable to touch - the status bar.
+    public static void padForStatusBarInset(View view) {
+        final int initialPaddingLeft = view.getPaddingLeft();
+        final int initialPaddingTop = view.getPaddingTop();
+        final int initialPaddingRight = view.getPaddingRight();
+        final int initialPaddingBottom = view.getPaddingBottom();
+        ViewCompat.setOnApplyWindowInsetsListener(view, (v, insets) -> {
+            int statusBarInsetTop = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
+            v.setPadding(initialPaddingLeft, initialPaddingTop + statusBarInsetTop,
+                    initialPaddingRight, initialPaddingBottom);
+            return insets;
+        });
     }
 
     public static String[] whitelistedBrowsers = {

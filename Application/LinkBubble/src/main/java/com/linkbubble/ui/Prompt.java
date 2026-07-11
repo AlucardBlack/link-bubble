@@ -48,6 +48,7 @@ public class Prompt {
 
     private WindowManager mWindowManager;
     private WindowManager.LayoutParams mLayoutParams;
+    private Context mContext;
 
     int mSnackbarHeight;
 
@@ -66,6 +67,7 @@ public class Prompt {
     }
 
     private Prompt(Context context) {
+        mContext = context;
         mWindowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
 
         mSnackbarHeight = context.getResources().getDimensionPixelSize(R.dimen.snackbar_height);
@@ -200,7 +202,7 @@ public class Prompt {
 
     public static void show(CharSequence text, CharSequence buttonText, int duration, boolean forceSingleLine, OnPromptEventListener listener) {
         Util.Assert(sPrompt != null, "null instance");
-        if (sPrompt != null) {
+        if (sPrompt != null && android.provider.Settings.canDrawOverlays(sPrompt.mContext)) {
             sPrompt.hidePrompt(true);
             CrashTracking.log("Prompt.show() text:" + text);
             sPrompt.showPrompt(text, buttonText, duration, forceSingleLine, listener);

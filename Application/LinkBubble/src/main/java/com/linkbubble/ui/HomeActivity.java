@@ -57,6 +57,7 @@ public class HomeActivity extends AppCompatActivity {
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        Util.padForStatusBarInset(toolbar);
 
         Analytics.trackScreenView(HomeActivity.class.getSimpleName());
 

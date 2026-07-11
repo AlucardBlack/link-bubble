@@ -336,8 +336,7 @@ public class PageInspector {
                 }
             }
 
-            // return null. No need for Picasso to cache this, as we're already doing so elsewhere
-            return null;
+            return result;
         }
 
         @Override

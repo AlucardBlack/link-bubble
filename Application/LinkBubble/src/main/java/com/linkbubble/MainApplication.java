@@ -7,6 +7,7 @@ package com.linkbubble;
 import android.app.AlertDialog;
 import android.app.Application;
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.ActivityNotFoundException;
@@ -79,6 +80,10 @@ public class MainApplication extends Application {
     public void onCreate() {
         super.onCreate();
 
+        NotificationChannel channel = new NotificationChannel(Constant.NOTIFICATION_CHANNEL_ID,
+                getString(R.string.notification_channel_name), NotificationManager.IMPORTANCE_LOW);
+        ((NotificationManager) getSystemService(NOTIFICATION_SERVICE)).createNotificationChannel(channel);
+
         mBus = new Bus();
 
         registerForBus(this, this);
@@ -128,9 +133,9 @@ public class MainApplication extends Application {
                         this,
                         0,
                         resultIntent,
-                        PendingIntent.FLAG_UPDATE_CURRENT);
+                        PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, Constant.NOTIFICATION_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_stat)
                 .setContentTitle(getResources().getString(R.string.tab_based_browser_notification_title))
                 .setContentText(getResources().getString(R.string.tab_based_browser_notification_text))
@@ -220,6 +225,10 @@ public class MainApplication extends Application {
 
         context = context.getApplicationContext();
 
+        if (!android.provider.Settings.canDrawOverlays(context)) {
+            return false;
+        }
+
         if (checkLastAppLoad) {
             /*
             long timeDiff = time - sLastLoadedTime;
@@ -281,6 +290,9 @@ public class MainApplication extends Application {
     public static void restoreLinks(Context context, String [] urls) {
         context = context.getApplicationContext();
         if (urls == null || urls.length == 0) {
+            return;
+        }
+        if (!android.provider.Settings.canDrawOverlays(context)) {
             return;
         }
         CrashTracking.log("MainApplication.restoreLinks(), urls.length:" + urls.length);

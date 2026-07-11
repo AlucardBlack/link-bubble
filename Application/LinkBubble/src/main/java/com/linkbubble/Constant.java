@@ -108,6 +108,8 @@ public class Constant {
     // String to represent the group all the notifications will be a part of
     public static final String NOTIFICATION_GROUP_KEY_ARTICLES = "group_key_articles";
 
+    public static final String NOTIFICATION_CHANNEL_ID = "link_bubble_default";
+
     public static final String DATA_USER_ENTRY = "User";
     public static final String DATA_USER_EMAIL_KEY_PREFIX = "email_";
     public static final String DATA_USER_TWITTER_KEY_PREFIX = "twitter_";

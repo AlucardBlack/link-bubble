@@ -1850,14 +1850,14 @@ public class ContentView extends FrameLayout {
                 closeTabIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
                 closeTabIntent.putExtra(NotificationCloseTabActivity.EXTRA_DISMISS_NOTIFICATION, mArticleNotificationId);
                 PendingIntent closeTabPendingIntent =
-                        PendingIntent.getActivity(context, mArticleNotificationId, closeTabIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                        PendingIntent.getActivity(context, mArticleNotificationId, closeTabIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
                 Intent openTabIntent = new Intent(context, NotificationOpenTabActivity.class);
                 openTabIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED | Intent.FLAG_ACTIVITY_NEW_TASK);
                 openTabIntent.putExtra(NotificationOpenTabActivity.EXTRA_DISMISS_NOTIFICATION, mArticleNotificationId);
-                PendingIntent openTabPendingIntent = PendingIntent.getActivity(context, (int) System.currentTimeMillis(), openTabIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                PendingIntent openTabPendingIntent = PendingIntent.getActivity(context, (int) System.currentTimeMillis(), openTabIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
-                Notification notification = new NotificationCompat.Builder(context)
+                Notification notification = new NotificationCompat.Builder(context, Constant.NOTIFICATION_CHANNEL_ID)
                         .addAction(R.drawable.ic_action_cancel_white, context.getString(R.string.action_close_tab), closeTabPendingIntent)
                         .setContentTitle(title)
                         .setContentText(articleContent.mText)

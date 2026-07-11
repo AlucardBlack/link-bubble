@@ -15,7 +15,9 @@ import android.os.Build;
 import android.os.IBinder;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.core.content.ContextCompat;
 import android.webkit.WebIconDatabase;
+import android.widget.Toast;
 
 import com.linkbubble.ui.NotificationCloseAllActivity;
 import com.linkbubble.ui.NotificationHideActivity;
@@ -31,6 +33,7 @@ public class MainService extends Service {
     private static final String BCAST_CONFIGCHANGED = "android.intent.action.CONFIGURATION_CHANGED";
 
     private boolean mRestoreComplete;
+    private boolean mFullyInitialized = false;
 
     public static class ShowDefaultNotificationEvent {
     }
@@ -106,6 +109,13 @@ public class MainService extends Service {
         super.onCreate();
         CrashTracking.log("MainService.onCreate()");
 
+        if (!android.provider.Settings.canDrawOverlays(this)) {
+            CrashTracking.log("MainService.onCreate(): overlay permission not granted, stopping self");
+            Toast.makeText(this, R.string.overlay_permission_required, Toast.LENGTH_LONG).show();
+            stopSelf();
+            return;
+        }
+
         showDefaultNotification();
 
         Config.init(this);
@@ -139,9 +149,10 @@ public class MainService extends Service {
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(BCAST_CONFIGCHANGED);
-        registerReceiver(mBroadcastReceiver, filter);
+        ContextCompat.registerReceiver(this, mBroadcastReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED);
 
-        registerReceiver(mDialogReceiver, new IntentFilter(Intent.ACTION_CLOSE_SYSTEM_DIALOGS));
+        ContextCompat.registerReceiver(this, mDialogReceiver, new IntentFilter(Intent.ACTION_CLOSE_SYSTEM_DIALOGS),
+                ContextCompat.RECEIVER_NOT_EXPORTED);
 
         filter = new IntentFilter(Intent.ACTION_PACKAGE_ADDED);
         filter.addAction(Intent.ACTION_PACKAGE_REMOVED);
@@ -150,19 +161,22 @@ public class MainService extends Service {
         filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
         filter.addAction(Intent.ACTION_SCREEN_OFF);
         filter.addAction(Intent.ACTION_USER_PRESENT);
-        registerReceiver(mScreenReceiver, filter);
+        ContextCompat.registerReceiver(this, mScreenReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED);
 
         MainApplication.registerForBus(this, this);
+        mFullyInitialized = true;
     }
 
     @Override
     public void onDestroy() {
-        MainApplication.postEvent(MainService.this, new OnDestroyMainServiceEvent());
-        MainApplication.unregisterForBus(this, this);
-        unregisterReceiver(mScreenReceiver);
-        unregisterReceiver(mDialogReceiver);
-        unregisterReceiver(mBroadcastReceiver);
-        MainController.destroy();
+        if (mFullyInitialized) {
+            MainApplication.postEvent(MainService.this, new OnDestroyMainServiceEvent());
+            MainApplication.unregisterForBus(this, this);
+            unregisterReceiver(mScreenReceiver);
+            unregisterReceiver(mDialogReceiver);
+            unregisterReceiver(mBroadcastReceiver);
+            MainController.destroy();
+        }
         CrashTracking.log("MainService.onDestroy()");
         super.onDestroy();
     }
@@ -175,13 +189,13 @@ public class MainService extends Service {
     private void showDefaultNotification() {
         Intent closeAllIntent = new Intent(this, NotificationCloseAllActivity.class);
         closeAllIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED | Intent.FLAG_ACTIVITY_NEW_TASK);
-        PendingIntent closeAllPendingIntent = PendingIntent.getActivity(this, (int) System.currentTimeMillis(), closeAllIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent closeAllPendingIntent = PendingIntent.getActivity(this, (int) System.currentTimeMillis(), closeAllIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         Intent hideIntent = new Intent(this, NotificationHideActivity.class);
         hideIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED | Intent.FLAG_ACTIVITY_NEW_TASK);
-        PendingIntent hidePendingIntent = PendingIntent.getActivity(this, (int) System.currentTimeMillis(), hideIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent hidePendingIntent = PendingIntent.getActivity(this, (int) System.currentTimeMillis(), hideIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
-        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, Constant.NOTIFICATION_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_stat)
                 .setPriority(Notification.PRIORITY_MIN)
                 .setContentTitle(getString(R.string.app_name))
@@ -204,13 +218,13 @@ public class MainService extends Service {
     private void showUnhideHiddenNotification() {
         Intent unhideIntent = new Intent(this, NotificationUnhideActivity.class);
         unhideIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED | Intent.FLAG_ACTIVITY_NEW_TASK);
-        PendingIntent unhidePendingIntent = PendingIntent.getActivity(this, (int) System.currentTimeMillis(), unhideIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent unhidePendingIntent = PendingIntent.getActivity(this, (int) System.currentTimeMillis(), unhideIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         Intent closeAllIntent = new Intent(this, NotificationCloseAllActivity.class);
         closeAllIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED | Intent.FLAG_ACTIVITY_NEW_TASK);
-        PendingIntent closeAllPendingIntent = PendingIntent.getActivity(this, (int) System.currentTimeMillis(), closeAllIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent closeAllPendingIntent = PendingIntent.getActivity(this, (int) System.currentTimeMillis(), closeAllIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
-        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, Constant.NOTIFICATION_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_stat)
                 .setPriority(Notification.PRIORITY_MIN)
                 .setContentTitle(getString(R.string.app_name))
