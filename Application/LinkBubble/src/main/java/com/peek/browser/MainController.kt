@@ -17,6 +17,7 @@ import android.content.pm.ResolveInfo
 import android.graphics.PixelFormat
 import android.net.Uri
 import android.os.Build
+import androidx.core.content.ContextCompat
 import android.util.Log
 import android.view.Choreographer
 import android.view.Gravity
@@ -162,6 +163,11 @@ class MainController private constructor(context: Context, eventHandler: EventHa
 
     private val mContext: Context = context
     private val mAppPackageName: String = mContext.packageName
+    // Declared before init{} so the listener registration there doesn't get clobbered
+    // by a later property initializer (Kotlin runs them in textual order).
+    private var mKeyguardManager: KeyguardManager? = null
+    private var mLastKeyguardCheckTimeMillis: Long = 0
+    private var mKeyguardLockedStateListener: KeyguardManager.KeyguardLockedStateListener? = null
     private val mChoreographer: Choreographer
     private var mUpdateScheduled: Boolean
     private val mCanvasView: CanvasView
@@ -321,6 +327,26 @@ class MainController private constructor(context: Context, eventHandler: EventHa
         })
 
         updateIncognitoMode(Settings.get().isIncognitoMode)
+
+        // The device can lock while the screen stays on (lock timeout), which fires no
+        // SCREEN_OFF broadcast — and the doFrame() poll only runs while something is
+        // animating, so an idle bubble would stay visible on top of the lockscreen.
+        // API 33+ has a real event for it; older releases keep the doFrame() fallback.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            mKeyguardManager = mContext.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager?
+            val listener = KeyguardManager.KeyguardLockedStateListener { isLocked ->
+                CrashTracking.log("KeyguardLockedStateListener: isLocked=$isLocked")
+                setCanDisplay(!isLocked)
+            }
+            try {
+                // Requires the (normal) SUBSCRIBE_TO_KEYGUARD_LOCKED_STATE permission.
+                mKeyguardManager?.addKeyguardLockedStateListener(ContextCompat.getMainExecutor(mContext), listener)
+                mKeyguardLockedStateListener = listener
+            } catch (e: SecurityException) {
+                // Listener unavailable — doFrame()'s throttled poll takes over.
+                CrashTracking.logHandledException(e)
+            }
+        }
 
         // Warm the first tab's WebView while the main thread is idle.
         WebViewPreloader.preload(mContext)
@@ -614,10 +640,10 @@ class MainController private constructor(context: Context, eventHandler: EventHa
             }
         }
 
-        if (!mHiddenByUser) {
-            // isKeyguardLocked is a binder IPC; screen on/off/user-present broadcasts
-            // (updateScreenState) already cover state changes, so per-frame polling is
-            // only a safety net for device-admin lockNow() — 2Hz is plenty.
+        // Fallback when the KeyguardLockedStateListener isn't active (pre-33, or its
+        // registration failed): poll (throttled — isKeyguardLocked is a binder IPC)
+        // while animating.
+        if (!mHiddenByUser && mKeyguardLockedStateListener == null) {
             val nowMillis = frameTimeNanos / 1000000
             if (nowMillis - mLastKeyguardCheckTimeMillis >= 500) {
                 mLastKeyguardCheckTimeMillis = nowMillis
@@ -1214,9 +1240,6 @@ class MainController private constructor(context: Context, eventHandler: EventHa
         }
     }
 
-    private var mKeyguardManager: KeyguardManager? = null
-    private var mLastKeyguardCheckTimeMillis: Long = 0
-
     private fun updateKeyguardLocked() {
         if (mKeyguardManager == null) {
             mKeyguardManager = mContext.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager?
@@ -1323,6 +1346,11 @@ class MainController private constructor(context: Context, eventHandler: EventHa
 
             if (Constant.PROFILE_FPS) {
                 instance.mWindowManager.removeView(instance.mTextView)
+            }
+            val keyguardListener = instance.mKeyguardLockedStateListener
+            if (keyguardListener != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                instance.mKeyguardManager?.removeKeyguardLockedStateListener(keyguardListener)
+                instance.mKeyguardLockedStateListener = null
             }
             instance.mBubbleDraggable.destroy()
             instance.mBubbleFlowDraggable.destroy()
