@@ -1,37 +1,20 @@
 <resources>
 
-    <style name="AppThemeBase" parent="Theme.AppCompat.Light.NoActionBar">
+    <!-- Material3 base. Deliberately Light (not DayNight) until the settings/home
+         layouts stop hardcoding dark-on-light text colors; the in-app "dark theme"
+         setting only drives the bubble/tab chrome, not these activities. -->
+    <style name="AppThemeBase" parent="Theme.Material3.Light.NoActionBar">
         <item name="colorPrimary">@color/color_primary</item>
-        <item name="colorPrimaryDark">@color/color_primary_dark</item>
-        <item name="colorAccent">@color/color_orange</item>
-
-        <item name="android:colorBackground">@android:color/white</item>
-        <item name="android:windowBackground">@android:color/white</item>
+        <item name="colorAccent">@color/color_accent</item>
 
         <item name="android:listSeparatorTextViewStyle">@style/ListSeparatorTextView</item>
     </style>
 
-    <style name="AppTheme" parent="AppThemeBase">
-        <item name="android:textColorHighlight">#99663399</item>
-        <item name="android:textSelectHandleLeft">@drawable/apptheme_text_select_handle_left</item>
-        <item name="android:textSelectHandleRight">@drawable/apptheme_text_select_handle_right</item>
-        <item name="android:textSelectHandle">@drawable/apptheme_text_select_handle_middle</item>
+    <style name="AppTheme" parent="AppThemeBase"/>
 
-        <item name="android:listChoiceIndicatorMultiple">@drawable/apptheme_btn_check_holo_light</item>
-        <item name="android:listChoiceIndicatorSingle">@drawable/apptheme_btn_radio_holo_light</item>
-        <item name="android:buttonStyle">@style/ButtonAppTheme</item>
-        <item name="android:imageButtonStyle">@style/ImageButtonAppTheme</item>
-        <item name="android:progressBarStyleHorizontal">@style/ProgressBarAppTheme</item>
-        <item name="android:seekBarStyle">@style/SeekBarAppTheme</item>
-        <item name="android:listChoiceBackgroundIndicator">@drawable/apptheme_list_selector_holo_light</item>
-        <item name="android:activatedBackgroundIndicator">@drawable/apptheme_activated_background_holo_light</item>
-
-
-    </style>
-
-    <style name="ToolbarTheme" parent="Theme.AppCompat.NoActionBar">
+    <!-- Applied as android:theme on the dark app-bar Toolbars. -->
+    <style name="ToolbarTheme" parent="ThemeOverlay.Material3.Dark">
         <item name="colorPrimary">@color/color_primary</item>
-        <item name="colorPrimaryDark">@color/color_primary_dark</item>
         <item name="titleMarginStart">16dp</item>
     </style>
 
@@ -77,13 +60,18 @@
         <item name="android:windowBackground">@android:color/transparent</item>
     </style>
 
-    <style name="ContentTheme" parent="ContentThemeBase"/>
+    <!-- Merged from the old values-v19 override (minSdk 26 means it always applied). -->
+    <style name="ContentTheme" parent="ContentThemeBase">
+        <item name="android:windowTranslucentNavigation">true</item>
+        <item name="android:windowTranslucentStatus">true</item>
+    </style>
 
-    <style name="MainServiceThemeLight" parent="@android:style/Theme.Holo.Light">
+    <!-- Merged from the old values-v21 overrides (always active at minSdk 26). -->
+    <style name="MainServiceThemeLight" parent="@android:style/Theme.Material.Light">
         <item name="android:popupMenuStyle">@style/popupMenuStyleLight</item>
     </style>
 
-    <style name="MainServiceThemeDark" parent="@android:style/Theme.Holo">
+    <style name="MainServiceThemeDark" parent="@android:style/Theme.Material">
         <item name="android:popupMenuStyle">@style/popupMenuStyleDark</item>
     </style>
 
@@ -172,24 +160,5 @@
         <item name="android:displayOptions"></item>
     </style>
 
-
-    <style name="ButtonAppTheme" parent="android:Widget.Holo.Light.Button">
-        <item name="android:background">@drawable/apptheme_btn_default_holo_light</item>
-    </style>
-
-    <style name="ImageButtonAppTheme" parent="android:Widget.Holo.Light.ImageButton">
-        <item name="android:background">@drawable/apptheme_btn_default_holo_light</item>
-    </style>
-
-    <style name="ProgressBarAppTheme" parent="android:Widget.Holo.Light.ProgressBar.Horizontal">
-        <item name="android:progressDrawable">@drawable/apptheme_progress_horizontal_holo_light</item>
-        <item name="android:indeterminateDrawable">@drawable/apptheme_progress_indeterminate_horizontal_holo_light</item>
-    </style>
-
-    <style name="SeekBarAppTheme" parent="android:Widget.Holo.Light.SeekBar">
-        <item name="android:progressDrawable">@drawable/apptheme_scrubber_progress_horizontal_holo_light</item>
-        <item name="android:indeterminateDrawable">@drawable/apptheme_scrubber_progress_horizontal_holo_light</item>
-        <item name="android:thumb">@drawable/apptheme_scrubber_control_selector_holo_light</item>
-    </style>
 
 </resources>

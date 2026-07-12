@@ -24,6 +24,7 @@ import android.os.Vibrator
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import com.google.android.material.color.DynamicColors
 import com.peek.browser.Constant.BubbleAction
 import com.peek.browser.adblock.ABPFilterParser
 import com.peek.browser.adblock.WhiteListCollector
@@ -60,6 +61,10 @@ class MainApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+
+        // Wallpaper-derived Material You colors on Android 12+; the static Peek palette
+        // in colors.xml is the fallback below that.
+        DynamicColors.applyToActivitiesIfAvailable(this)
 
         val channel = NotificationChannel(Constant.NOTIFICATION_CHANNEL_ID,
                 getString(R.string.notification_channel_name), NotificationManager.IMPORTANCE_LOW)
