@@ -13,7 +13,6 @@ import android.view.View
 import android.view.WindowManager
 import com.linkbubble.Config
 import com.linkbubble.Constant
-import com.linkbubble.MainApplication
 import com.linkbubble.MainController
 import com.linkbubble.R
 import com.linkbubble.Settings
@@ -21,6 +20,7 @@ import com.linkbubble.physics.Circle
 import com.linkbubble.physics.Draggable
 import com.linkbubble.physics.DraggableHelper
 import com.linkbubble.util.CrashTracking
+import com.linkbubble.util.EventBus
 import com.linkbubble.util.Util
 import java.net.MalformedURLException
 
@@ -221,7 +221,7 @@ class BubbleDraggable @JvmOverloads constructor(
                 BubbleTargetView.disableTractor()
                 onAnimComplete()
 
-                MainApplication.postEvent(context, mEndBubbleDragEvent)
+                EventBus.post(mEndBubbleDragEvent)
 
                 if (tv == null) {
                     val x = mDraggableHelper.getXPos()
@@ -249,7 +249,7 @@ class BubbleDraggable @JvmOverloads constructor(
         val bubbleRestingPoint = Settings.get().getBubbleRestingPoint()
         setTargetPos(bubbleRestingPoint.x, bubbleRestingPoint.y, 0f, DraggableHelper.AnimationType.Linear, null)
 
-        MainApplication.postEvent(context, mEndCollapseTransitionEvent)
+        EventBus.post(mEndCollapseTransitionEvent)
     }
 
     private fun doAnimateToBubbleView(animTimeMsIn: Int, fromCloseSystemDialogs: Boolean) {
@@ -301,7 +301,7 @@ class BubbleDraggable @JvmOverloads constructor(
         val bubbleRestingPoint = Settings.get().getBubbleRestingPoint()
         setTargetPos(bubbleRestingPoint.x, bubbleRestingPoint.y, bubblePeriod, DraggableHelper.AnimationType.SmallOvershoot, object : DraggableHelper.AnimationEventListener {
             override fun onAnimationComplete() {
-                MainApplication.postEvent(context, mEndCollapseTransitionEvent)
+                EventBus.post(mEndCollapseTransitionEvent)
                 onAnimComplete()
             }
 
@@ -314,7 +314,7 @@ class BubbleDraggable @JvmOverloads constructor(
         mainController.collapseBubbleFlow((contentPeriod * 1000).toLong())
 
         mBeginCollapseTransitionEvent.mPeriod = contentPeriod
-        MainApplication.postEvent(context, MainController.BeginCollapseTransitionEvent(fromCloseSystemDialogs))
+        EventBus.post(MainController.BeginCollapseTransitionEvent(fromCloseSystemDialogs))
     }
 
     private fun doAnimateToContentView() {
@@ -358,8 +358,8 @@ class BubbleDraggable @JvmOverloads constructor(
                 val activeCount = mainController!!.activeTabCount
                 if (activeCount == 0) {
                     // Ensure we don't enter state where there are no tabs to display. Fix #448
-                    MainApplication.postEvent(context, MainController.EndCollapseTransitionEvent())
-                    MainApplication.postEvent(context, ExpandedActivity.MinimizeExpandedActivityEvent())
+                    EventBus.post(MainController.EndCollapseTransitionEvent())
+                    EventBus.post(ExpandedActivity.MinimizeExpandedActivityEvent())
                     CrashTracking.log("doAnimateToContentView(): onAnimationComplete(): getActiveTabCount()==0")
                 } else {
                     CrashTracking.log("doAnimateToContentView(): onAnimationComplete(): getActiveTabCount():$activeCount")
@@ -435,7 +435,7 @@ class BubbleDraggable @JvmOverloads constructor(
                         mainController.scheduleUpdate()
                     }
 
-                    MainApplication.postEvent(context, mBeginBubbleDragEvent)
+                    EventBus.post(mBeginBubbleDragEvent)
                     CrashTracking.log("BubbleDraggable.configure(): onActionDown() - start drag")
                 }
             }
@@ -517,7 +517,7 @@ class BubbleDraggable @JvmOverloads constructor(
                                 doFlick(e.vx, e.vy)
                                 CrashTracking.log("BubbleDraggable.configure(): onActionUp() - doFlick()")
                             } else {
-                                MainApplication.postEvent(context, mEndBubbleDragEvent)
+                                EventBus.post(mEndBubbleDragEvent)
 
                                 val doBubbleView = mMode == Mode.BubbleView ||
                                         e.posX < Config.mScreenWidth * 0.2f ||
@@ -534,12 +534,12 @@ class BubbleDraggable @JvmOverloads constructor(
                                 }
                             }
                         } else {
-                            MainApplication.postEvent(context, mEndBubbleDragEvent)
+                            EventBus.post(mEndBubbleDragEvent)
                             CrashTracking.log("BubbleDraggable.configure(): onActionUp() - doSnapAction()")
                             doSnapAction(mCurrentSnapTarget!!.getAction())
                         }
                     } else {
-                        MainApplication.postEvent(context, mEndBubbleDragEvent)
+                        EventBus.post(mEndBubbleDragEvent)
 
                         if (mMode == Mode.BubbleView) {
                             CrashTracking.log("BubbleDraggable.configure(): onActionUp() - doAnimateToContentView() [mMode == Mode.BubbleView]")

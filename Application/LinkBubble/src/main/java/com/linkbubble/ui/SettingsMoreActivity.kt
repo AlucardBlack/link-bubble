@@ -20,6 +20,7 @@ import com.linkbubble.MainController
 import com.linkbubble.R
 import com.linkbubble.Settings
 import com.linkbubble.util.AppPickerList
+import com.linkbubble.util.EventBus
 import com.linkbubble.util.Util
 import java.util.ArrayList
 import java.util.Comparator
@@ -90,9 +91,7 @@ class SettingsMoreActivity : AppCompatPreferenceActivity() {
             val adBlockPreference = findPreference(Settings.PREFERENCE_ADBLOCK_MODE) as CheckBoxPreference
             adBlockPreference.setOnPreferenceChangeListener { preference, newValue ->
                 if (newValue as Boolean) {
-                    val app = activity.application as MainApplication
-                    val bus = app.getBus()
-                    bus.post(AdBlockTurnOnEvent())
+                    EventBus.post(AdBlockTurnOnEvent())
                 }
 
                 true

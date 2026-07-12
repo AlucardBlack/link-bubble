@@ -16,10 +16,8 @@ import android.util.AttributeSet
 import android.view.View
 import android.view.animation.LinearInterpolator
 import com.linkbubble.Config
-import com.linkbubble.MainApplication
 import com.linkbubble.MainController
 import com.linkbubble.R
-import com.squareup.otto.Subscribe
 import java.util.Locale
 
 class CloseTabTargetView @JvmOverloads constructor(
@@ -86,28 +84,14 @@ class CloseTabTargetView @JvmOverloads constructor(
         }
     }
 
-    override fun registerForBus() {
-        MainApplication.registerForBus(context, this)
-    }
-
-    override fun unregisterForBus() {
-        MainApplication.unregisterForBus(context, this)
-    }
-
-    @Suppress("unused")
-    @Subscribe
     override fun onBeginBubbleDrag(e: MainController.BeginBubbleDragEvent) {
         super.onBeginBubbleDrag(e)
     }
 
-    @Suppress("unused")
-    @Subscribe
     override fun onEndBubbleDragEvent(e: MainController.EndBubbleDragEvent) {
         super.onEndBubbleDragEvent(e)
     }
 
-    @Suppress("unused")
-    @Subscribe
     override fun onDraggableBubbleMovedEvent(e: MainController.DraggableBubbleMovedEvent) {
         super.onDraggableBubbleMovedEvent(e)
     }

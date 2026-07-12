@@ -15,13 +15,12 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import com.linkbubble.Config
 import com.linkbubble.Constant
-import com.linkbubble.MainApplication
 import com.linkbubble.MainController
 import com.linkbubble.R
 import com.linkbubble.Settings
 import com.linkbubble.physics.Circle
+import com.linkbubble.util.EventBus
 import com.linkbubble.util.Util
-import com.squareup.otto.Subscribe
 
 open class BubbleTargetView @JvmOverloads constructor(
         context: Context, attrs: AttributeSet? = null, defStyle: Int = 0
@@ -230,11 +229,13 @@ open class BubbleTargetView @JvmOverloads constructor(
     }
 
     protected open fun registerForBus() {
-        MainApplication.registerForBus(context, this)
+        EventBus.subscribe(this, MainController.BeginBubbleDragEvent::class.java, ::onBeginBubbleDrag)
+        EventBus.subscribe(this, MainController.EndBubbleDragEvent::class.java, ::onEndBubbleDragEvent)
+        EventBus.subscribe(this, MainController.DraggableBubbleMovedEvent::class.java, ::onDraggableBubbleMovedEvent)
     }
 
     protected open fun unregisterForBus() {
-        MainApplication.unregisterForBus(context, this)
+        EventBus.unsubscribeAll(this)
     }
 
     fun shouldSnap(bubbleCircle: Circle, radiusScaler: Float): Boolean {
@@ -275,8 +276,6 @@ open class BubbleTargetView @JvmOverloads constructor(
         return mAction
     }
 
-    @Suppress("unused")
-    @Subscribe
     open fun onBeginBubbleDrag(e: MainController.BeginBubbleDragEvent) {
         postDelayed({
             visibility = VISIBLE
@@ -298,8 +297,6 @@ open class BubbleTargetView @JvmOverloads constructor(
         MainController.get()!!.scheduleUpdate()
     }
 
-    @Suppress("unused")
-    @Subscribe
     open fun onEndBubbleDragEvent(e: MainController.EndBubbleDragEvent) {
         postDelayed({
             visibility = GONE
@@ -309,8 +306,6 @@ open class BubbleTargetView @JvmOverloads constructor(
         setTargetPos(mHomeX, mHomeY)
     }
 
-    @Suppress("unused")
-    @Subscribe
     open fun onDraggableBubbleMovedEvent(e: MainController.DraggableBubbleMovedEvent) {
     }
 

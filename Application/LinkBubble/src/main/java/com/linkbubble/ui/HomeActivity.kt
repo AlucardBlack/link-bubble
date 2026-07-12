@@ -30,7 +30,7 @@ import com.linkbubble.MainController
 import com.linkbubble.R
 import com.linkbubble.Settings
 import com.linkbubble.util.Analytics
-import com.squareup.otto.Subscribe
+import com.linkbubble.util.EventBus
 import com.linkbubble.util.Util
 
 class HomeActivity : AppCompatActivity() {
@@ -113,7 +113,7 @@ class HomeActivity : AppCompatActivity() {
                     Analytics.OPENED_URL_FROM_MAIN_NEW_TAB)
         }
 
-        MainApplication.registerForBus(this, this)
+        EventBus.subscribe(this, Settings.LinkLoadTimeStatsUpdatedEvent::class.java, ::onLinkLoadTimeStatsUpdatedEvent)
 
         Settings.get().getBrowsers()
     }
@@ -140,7 +140,7 @@ class HomeActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        MainApplication.unregisterForBus(this, this)
+        EventBus.unsubscribeAll(this)
         super.onDestroy()
     }
 
@@ -150,7 +150,7 @@ class HomeActivity : AppCompatActivity() {
         updateLinkLoadTimeStats()
         checkOverlayPermission()
 
-        MainApplication.postEvent(applicationContext, MainApplication.CheckStateEvent())
+        EventBus.post(MainApplication.CheckStateEvent())
     }
 
     private fun checkOverlayPermission() {
@@ -248,8 +248,6 @@ class HomeActivity : AppCompatActivity() {
         }
     }
 
-    @Suppress("unused")
-    @Subscribe
     fun onLinkLoadTimeStatsUpdatedEvent(event: Settings.LinkLoadTimeStatsUpdatedEvent) {
         updateLinkLoadTimeStats()
     }

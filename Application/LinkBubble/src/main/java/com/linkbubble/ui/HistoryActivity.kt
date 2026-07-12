@@ -38,8 +38,8 @@ import com.linkbubble.db.DatabaseHelper
 import com.linkbubble.db.HistoryRecord
 import com.linkbubble.util.ActionItem
 import com.linkbubble.util.Analytics
+import com.linkbubble.util.EventBus
 import com.linkbubble.util.Util
-import com.squareup.otto.Subscribe
 import org.mozilla.gecko.favicons.Favicons
 import org.mozilla.gecko.favicons.LoadFaviconTask
 import org.mozilla.gecko.favicons.OnFaviconLoadedListener
@@ -92,7 +92,7 @@ class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, Ad
         mHistoryRecords = MainApplication.sDatabaseHelper!!.getAllHistoryRecords().toMutableList()
         setupListView()
 
-        (applicationContext as MainApplication).getBus().register(this)
+        EventBus.subscribe(this, HistoryRecord.ChangedEvent::class.java, ::onHistoryRecordChangedEvent)
 
         MainApplication.checkRestoreCurrentTabs(this)
     }
@@ -100,7 +100,7 @@ class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, Ad
     override fun onStop() {
         super.onStop()
 
-        (applicationContext as MainApplication).getBus().unregister(this)
+        EventBus.unsubscribeAll(this)
     }
 
     private fun setupListView() {
@@ -409,8 +409,6 @@ class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, Ad
         }
     }
 
-    @Suppress("unused")
-    @Subscribe
     fun onHistoryRecordChangedEvent(event: HistoryRecord.ChangedEvent) {
         var setupList = false
         if (mHistoryRecords == null) {

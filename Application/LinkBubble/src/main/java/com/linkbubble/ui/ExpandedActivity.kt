@@ -21,12 +21,11 @@ import android.widget.FrameLayout
 import android.widget.LinearLayout
 import com.linkbubble.BuildConfig
 import com.linkbubble.Constant
-import com.linkbubble.MainApplication
 import com.linkbubble.MainController
 import com.linkbubble.MainService
 import com.linkbubble.R
 import com.linkbubble.util.CrashTracking
-import com.squareup.otto.Subscribe
+import com.linkbubble.util.EventBus
 import org.jsoup.helper.StringUtil
 import java.util.ArrayList
 
@@ -140,7 +139,7 @@ class ExpandedActivity : Activity() {
         CrashTracking.log("ExpandedActivity.onStart()")
         Log.e(TAG, "Expand time: " + (System.currentTimeMillis() - MainController.sStartExpandedActivityTime))
 
-        MainApplication.postEvent(this, ExpandedActivityReadyEvent())
+        EventBus.post(ExpandedActivityReadyEvent())
 
         super.onStart()
     }
@@ -189,13 +188,16 @@ class ExpandedActivity : Activity() {
     }
 
     fun registerForBus() {
-        MainApplication.registerForBus(this, this)
+        EventBus.subscribe(this, MinimizeExpandedActivityEvent::class.java, ::onMinimizeExpandedActivity)
+        EventBus.subscribe(this, ShowFileBrowserEvent::class.java, ::onShowFileBrowserEvent)
+        EventBus.subscribe(this, MainController.HideContentEvent::class.java, ::onHideContentEvent)
+        EventBus.subscribe(this, MainService.OnDestroyMainServiceEvent::class.java, ::OnOnDestroyMainServiceEvent)
         mRegisteredForBus = true
     }
 
     fun unregisterForBus() {
         if (mRegisteredForBus) {
-            MainApplication.unregisterForBus(this, this)
+            EventBus.unsubscribeAll(this)
             mRegisteredForBus = false
         }
     }
@@ -309,26 +311,18 @@ class ExpandedActivity : Activity() {
         }
     }
 
-    @Suppress("unused")
-    @Subscribe
     fun onMinimizeExpandedActivity(e: MinimizeExpandedActivityEvent) {
         minimize()
     }
 
-    @Suppress("unused")
-    @Subscribe
     fun onShowFileBrowserEvent(e: ShowFileBrowserEvent) {
         showFileBrowser(e.getAcceptTypes(), e.getFilePathCallback())
     }
 
-    @Suppress("unused")
-    @Subscribe
     fun onHideContentEvent(event: MainController.HideContentEvent) {
         finish()
     }
 
-    @Suppress("unused")
-    @Subscribe
     fun OnOnDestroyMainServiceEvent(event: MainService.OnDestroyMainServiceEvent) {
         finish()
     }

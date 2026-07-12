@@ -42,8 +42,8 @@ import com.linkbubble.util.ActionItem
 import com.linkbubble.util.Analytics
 import com.linkbubble.util.AppPoller
 import com.linkbubble.util.CrashTracking
+import com.linkbubble.util.EventBus
 import com.linkbubble.util.Util
-import com.squareup.otto.Subscribe
 import java.net.MalformedURLException
 import java.net.URL
 import java.util.Timer
@@ -264,9 +264,11 @@ class MainController private constructor(context: Context, eventHandler: EventHa
         mChoreographer = Choreographer.getInstance()
         mCanvasView = CanvasView(mContext)
 
-        val app = mContext.applicationContext as MainApplication
-        val bus = app.getBus()
-        bus.register(this)
+        EventBus.subscribe(this, EndCollapseTransitionEvent::class.java, ::onEndCollapseTransition)
+        EventBus.subscribe(this, BeginExpandTransitionEvent::class.java, ::onBeginExpandTransition)
+        EventBus.subscribe(this, ExpandedActivity.ExpandedActivityReadyEvent::class.java, ::onExpandedActivityReadyEvent)
+        EventBus.subscribe(this, MainApplication.StateChangedEvent::class.java, ::onStateChangedEvent)
+        EventBus.subscribe(this, EndAnimateFinalTabAwayEvent::class.java, ::onEndAnimateFinalTabAway)
 
         val inflater = LayoutInflater.from(mContext)
 
@@ -465,20 +467,14 @@ class MainController private constructor(context: Context, eventHandler: EventHa
         mBubbleFlowDraggable.updateIncognitoMode(incognito)
     }
 
-    @Suppress("unused")
-    @Subscribe
     fun onEndCollapseTransition(e: EndCollapseTransitionEvent) {
         showBadge(true)
     }
 
-    @Suppress("unused")
-    @Subscribe
     fun onBeginExpandTransition(e: BeginExpandTransitionEvent) {
         showBadge(false)
     }
 
-    @Suppress("unused")
-    @Subscribe
     fun onExpandedActivityReadyEvent(event: ExpandedActivity.ExpandedActivityReadyEvent) {
         if (mDeferredExpandBubbleFlowTime > -1) {
             doExpandBubbleFlow(mDeferredExpandBubbleFlowTime, mDeferredExpandBubbleFlowHideDraggable)
@@ -660,7 +656,7 @@ class MainController private constructor(context: Context, eventHandler: EventHa
         Settings.get().onOrientationChange()
         mBubbleDraggable.onOrientationChanged()
         mBubbleFlowDraggable.onOrientationChanged()
-        MainApplication.postEvent(mContext, mOrientationChangedEvent)
+        EventBus.post(mOrientationChangedEvent)
     }
 
     private fun handleResolveInfo(resolveInfo: ResolveInfo, urlAsString: String, urlLoadStartTime: Long): Boolean {
@@ -856,7 +852,7 @@ class MainController private constructor(context: Context, eventHandler: EventHa
                 // Ensure CanvasView has a valid ContentView
                 val event = CurrentTabChangedEvent()
                 event.mTab = tab
-                MainApplication.postEvent(mContext, event)
+                EventBus.post(event)
 
                 mBubbleDraggable.snapToBubbleView()
             } else {
@@ -902,7 +898,7 @@ class MainController private constructor(context: Context, eventHandler: EventHa
     }
 
     fun startFileBrowser(acceptTypes: Array<String>, filePathCallback: ValueCallback<Array<Uri>>) {
-        MainApplication.postEvent(mContext,
+        EventBus.post(
                 ExpandedActivity.ShowFileBrowserEvent(acceptTypes, filePathCallback))
     }
 
@@ -961,7 +957,7 @@ class MainController private constructor(context: Context, eventHandler: EventHa
             // Ensure BubbleFlowDraggable gets at least 1 update in the event items are animating off screen. See #237.
             scheduleUpdate()
 
-            MainApplication.postEvent(mContext, mMinimizeExpandedActivityEvent)
+            EventBus.post(mMinimizeExpandedActivityEvent)
         }
 
         if (canShowUndoPrompt && Settings.get().getShowUndoCloseTab()) {
@@ -1044,7 +1040,7 @@ class MainController private constructor(context: Context, eventHandler: EventHa
         mSetBubbleFlowGone = false // cancel any pending operation to set visibility to GONE (see #190)
         mBubbleFlowDraggable.expand(time, mOnBubbleFlowExpandFinishedListener)
 
-        MainApplication.postEvent(mContext, mBeginExpandTransitionEvent)
+        EventBus.post(mBeginExpandTransitionEvent)
 
         if (hideDraggable) {
             mBubbleDraggable.postDelayed(mSetBubbleGoneRunnable, 33)
@@ -1078,7 +1074,7 @@ class MainController private constructor(context: Context, eventHandler: EventHa
             mBubbleDraggable.switchToBubbleView(fromCloseSystemDialogs)
         } else {
             // If there's no tabs, ensuring pressing Home will cause the CanvasView to go away. Fix #448
-            MainApplication.postEvent(mContext, EndCollapseTransitionEvent())
+            EventBus.post(EndCollapseTransitionEvent())
         }
     }
 
@@ -1108,8 +1104,6 @@ class MainController private constructor(context: Context, eventHandler: EventHa
         mBubbleFlowDraggable.nextTab()
     }
 
-    @Suppress("unused")
-    @Subscribe
     fun onStateChangedEvent(event: MainApplication.StateChangedEvent) {
         closeAllBubbles(false)
         val urls = Settings.get().loadCurrentTabs()
@@ -1120,8 +1114,6 @@ class MainController private constructor(context: Context, eventHandler: EventHa
         }
     }
 
-    @Suppress("unused")
-    @Subscribe
     fun onEndAnimateFinalTabAway(event: EndAnimateFinalTabAwayEvent) {
         mBubbleFlowDraggable.visibility = View.GONE
     }
@@ -1151,12 +1143,12 @@ class MainController private constructor(context: Context, eventHandler: EventHa
                     BubbleDraggable.Mode.ContentView -> mBubbleDraggable.snapToBubbleView()
                     else -> {}
                 }
-                MainApplication.postEvent(mContext, HideContentEvent())
-                MainApplication.postEvent(mContext, MainService.ShowUnhideNotificationEvent())
+                EventBus.post(HideContentEvent())
+                EventBus.post(MainService.ShowUnhideNotificationEvent())
             } else {
-                MainApplication.postEvent(mContext, CurrentTabChangedEvent(mBubbleFlowDraggable.getCurrentTab(), true))
-                MainApplication.postEvent(mContext, MainService.ShowDefaultNotificationEvent())
-                MainApplication.postEvent(mContext, UnhideContentEvent())
+                EventBus.post(CurrentTabChangedEvent(mBubbleFlowDraggable.getCurrentTab(), true))
+                EventBus.post(MainService.ShowDefaultNotificationEvent())
+                EventBus.post(UnhideContentEvent())
             }
             setCanDisplay(!mHiddenByUser)
         }
@@ -1193,14 +1185,14 @@ class MainController private constructor(context: Context, eventHandler: EventHa
         if (action == Intent.ACTION_SCREEN_OFF) {
             mScreenOn = false
             setCanDisplay(false)
-            MainApplication.postEvent(mContext, mScreenOffEvent)
+            EventBus.post(mScreenOffEvent)
         } else if (action == Intent.ACTION_SCREEN_ON) {
             updateKeyguardLocked()
             mScreenOn = true
-            MainApplication.postEvent(mContext, mScreenOnEvent)
+            EventBus.post(mScreenOnEvent)
         } else if (action == Intent.ACTION_USER_PRESENT) {
             setCanDisplay(!mHiddenByUser)
-            MainApplication.postEvent(mContext, mUserPresentEvent)
+            EventBus.post(mUserPresentEvent)
         }
     }
 
@@ -1269,9 +1261,7 @@ class MainController private constructor(context: Context, eventHandler: EventHa
 
             Settings.get().saveData()
 
-            val app = instance.mContext.applicationContext as MainApplication
-            val bus = app.getBus()
-            bus.unregister(instance)
+            EventBus.unsubscribeAll(instance)
 
             if (Settings.get().isIncognitoMode) {
                 val cookieManager = CookieManager.getInstance()

@@ -38,18 +38,15 @@ import com.linkbubble.ui.SettingsMoreActivity
 import com.linkbubble.util.ActionItem
 import com.linkbubble.util.Analytics
 import com.linkbubble.util.CrashTracking
+import com.linkbubble.util.EventBus
 import com.linkbubble.util.IconCache
 import com.linkbubble.util.Util
-import com.squareup.otto.Bus
-import com.squareup.otto.Subscribe
 import org.mozilla.gecko.favicons.Favicons
 import java.net.MalformedURLException
 import java.net.URL
 import java.util.concurrent.ConcurrentHashMap
 
 class MainApplication : Application() {
-
-    private lateinit var mBus: Bus
 
     private var mABPParser: ABPFilterParser? = null
     private var mADInserter: AdInserter? = null
@@ -68,9 +65,9 @@ class MainApplication : Application() {
                 getString(R.string.notification_channel_name), NotificationManager.IMPORTANCE_LOW)
         (getSystemService(NOTIFICATION_SERVICE) as NotificationManager).createNotificationChannel(channel)
 
-        mBus = Bus()
-
-        registerForBus(this, this)
+        EventBus.subscribe(this, CheckStateEvent::class.java, ::onCheckStateEvent)
+        EventBus.subscribe(this, SettingsActivity.IncognitoModeChangedEvent::class.java, ::onIncognitoModeChanged)
+        EventBus.subscribe(this, SettingsMoreActivity.AdBlockTurnOnEvent::class.java, ::onAdBlockOn)
 
         Settings.initModule(this)
         Prompt.initModule(this)
@@ -84,7 +81,7 @@ class MainApplication : Application() {
         recreateFaviconCache()
 
         if (Settings.get().isAdBlockEnabled) {
-            mBus.post(SettingsMoreActivity.AdBlockTurnOnEvent())
+            EventBus.post(SettingsMoreActivity.AdBlockTurnOnEvent())
         }
         // Enable ad insertion for Crashlytics builds and disable for play store builds
         val appInfo = applicationInfo
@@ -141,10 +138,6 @@ class MainApplication : Application() {
         }
     }
 
-    fun getBus(): Bus {
-        return mBus
-    }
-
     fun initWhiteListCollector() {
         if (mWhiteListCollector == null) {
             mWhiteListCollector = WhiteListCollector(this)
@@ -199,14 +192,10 @@ class MainApplication : Application() {
 
     class CheckStateEvent
 
-    @Suppress("unused")
-    @Subscribe
     fun onCheckStateEvent(event: CheckStateEvent) {
 
     }
 
-    @Suppress("unused")
-    @Subscribe
     fun onIncognitoModeChanged(event: SettingsActivity.IncognitoModeChangedEvent) {
         if (null == event.mainController) {
             return
@@ -222,8 +211,6 @@ class MainApplication : Application() {
         }
     }
 
-    @Suppress("unused")
-    @Subscribe
     fun onAdBlockOn(event: SettingsMoreActivity.AdBlockTurnOnEvent) {
         DownloadAdBlockDataAsyncTask().execute()
     }
@@ -557,40 +544,8 @@ class MainApplication : Application() {
 
             val historyRecord = HistoryRecord(title, url, resolvedHost, System.currentTimeMillis())
 
-            val app = context.applicationContext as MainApplication
             sDatabaseHelper?.addHistoryRecord(historyRecord)
-            app.getBus().post(HistoryRecord.ChangedEvent(historyRecord))
-        }
-
-        private val sIgnoreClassName = MainController.DraggableBubbleMovedEvent::class.java.simpleName
-        private var sLastPostClassName = ""
-
-        @JvmStatic
-        fun postEvent(context: Context, event: Any) {
-            val app = context.applicationContext as MainApplication
-            val simpleName = event.javaClass.simpleName
-            if (sLastPostClassName != sIgnoreClassName
-                    || sLastPostClassName != sIgnoreClassName) {
-                CrashTracking.log("post($simpleName)")
-                sLastPostClassName = simpleName
-            }
-            try {
-                app.getBus().post(event)
-            } catch (exc: RuntimeException) {
-                CrashTracking.logHandledException(exc)
-            }
-        }
-
-        @JvmStatic
-        fun registerForBus(context: Context, obj: Any) {
-            val app = context.applicationContext as MainApplication
-            app.getBus().register(obj)
-        }
-
-        @JvmStatic
-        fun unregisterForBus(context: Context, obj: Any) {
-            val app = context.applicationContext as MainApplication
-            app.getBus().unregister(obj)
+            EventBus.post(HistoryRecord.ChangedEvent(historyRecord))
         }
 
         @JvmStatic

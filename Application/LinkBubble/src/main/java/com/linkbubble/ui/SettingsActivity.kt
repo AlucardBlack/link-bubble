@@ -48,6 +48,7 @@ import com.linkbubble.MainService
 import com.linkbubble.R
 import com.linkbubble.Settings
 import com.linkbubble.util.ActionItem
+import com.linkbubble.util.EventBus
 import com.linkbubble.util.IconCache
 import com.linkbubble.util.Util
 import java.util.ArrayList
@@ -127,10 +128,6 @@ class SettingsActivity : AppCompatPreferenceActivity() {
 
             val tintColor = resources.getColor(R.color.color_primary)
 
-            val app = activity.applicationContext as MainApplication
-            val bus = app.getBus()
-            bus.register(this)
-
             // Load the preferences from an XML resource
             addPreferencesFromResource(R.xml.preferences)
 
@@ -156,9 +153,7 @@ class SettingsActivity : AppCompatPreferenceActivity() {
             if (incognitoButton != null) {
                 incognitoButton.setOnPreferenceChangeListener { preference, newValue ->
 
-                    val app2 = activity.application as MainApplication
-                    val bus2 = app2.getBus()
-                    bus2.post(IncognitoModeChangedEvent(newValue as Boolean, MainController.get()))
+                    EventBus.post(IncognitoModeChangedEvent(newValue as Boolean, MainController.get()))
 
                     if (MainController.get() != null && MainController.get()!!.reloadAllTabs(activity)) {
                         Toast.makeText(activity, R.string.incognito_mode_changed_reloading_current, Toast.LENGTH_SHORT).show()
@@ -338,10 +333,6 @@ class SettingsActivity : AppCompatPreferenceActivity() {
 
         override fun onDestroy() {
             super.onDestroy()
-
-            val app = activity.applicationContext as MainApplication
-            val bus = app.getBus()
-            bus.unregister(this)
         }
 
         override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String?) {
@@ -471,7 +462,7 @@ class SettingsActivity : AppCompatPreferenceActivity() {
                     updateThemeSummary()
 
                     if (MainController.get() != null) {
-                        MainApplication.postEvent(activity, MainService.ReloadMainServiceEvent(activity))
+                        EventBus.post(MainService.ReloadMainServiceEvent(activity))
                     }
                 }
             })

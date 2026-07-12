@@ -22,6 +22,7 @@ import android.view.View
 import com.linkbubble.ui.TabView
 import com.linkbubble.util.Analytics
 import com.linkbubble.util.CrashTracking
+import com.linkbubble.util.EventBus
 import com.linkbubble.util.Util
 import org.json.JSONArray
 import org.json.JSONException
@@ -468,7 +469,7 @@ class Settings private constructor(private val mContext: Context) {
         }
         editor.commit()
 
-        MainApplication.postEvent(mContext, OnConsumeBubblesChangedEvent())
+        EventBus.post(OnConsumeBubblesChangedEvent())
     }
 
     fun getConsumeBubbleLabel(action: Constant.BubbleAction): String? {
@@ -1105,7 +1106,7 @@ class Settings private constructor(private val mContext: Context) {
 
         Log.d(LOAD_TIME_TAG, "trackLinkLoadTime() - timeSaved:" + timeSaved.toFloat() / 1000f + " seconds, " + linkLoadType + ", " + url)
 
-        MainApplication.postEvent(mContext, mLinkLoadTimeStatsUpdatedEvent)
+        EventBus.post(mLinkLoadTimeStatsUpdatedEvent)
 
         Analytics.trackTimeSaved(timeSaved)
     }

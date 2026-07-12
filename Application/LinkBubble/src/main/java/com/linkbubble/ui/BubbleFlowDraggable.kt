@@ -22,6 +22,7 @@ import com.linkbubble.Settings
 import com.linkbubble.physics.Draggable
 import com.linkbubble.physics.DraggableHelper
 import com.linkbubble.util.CrashTracking
+import com.linkbubble.util.EventBus
 import com.linkbubble.util.VerticalGestureListener
 import java.net.MalformedURLException
 
@@ -235,7 +236,7 @@ class BubbleFlowDraggable @JvmOverloads constructor(
 
     private fun setCurrentTab(tab: TabView?) {
         mCurrentTabResumeEvent.mTab = tab
-        MainApplication.postEvent(context, mCurrentTabResumeEvent)
+        EventBus.post(mCurrentTabResumeEvent)
         if (mCurrentTab === tab) {
             if (null != mCurrentTab) {
                 val contentView = mCurrentTab!!.getContentView()
@@ -250,10 +251,10 @@ class BubbleFlowDraggable @JvmOverloads constructor(
             mCurrentTab!!.setImitator(null)
         }
         mCurrentTabPauseEvent.mTab = mCurrentTab
-        MainApplication.postEvent(context, mCurrentTabPauseEvent)
+        EventBus.post(mCurrentTabPauseEvent)
         mCurrentTab = tab
         mCurrentTabChangedEvent.mTab = tab
-        MainApplication.postEvent(context, mCurrentTabChangedEvent)
+        EventBus.post(mCurrentTabChangedEvent)
         if (mCurrentTab != null) {
             mCurrentTab!!.setImitator(mBubbleDraggable)
             val contentView = mCurrentTab!!.getContentView()
@@ -366,7 +367,7 @@ class BubbleFlowDraggable @JvmOverloads constructor(
                 }
 
                 if (getActiveTabCount() == 0 && getVisibleTabCount() == 0) {
-                    MainApplication.postEvent(context, MainController.EndAnimateFinalTabAwayEvent())
+                    EventBus.post(MainController.EndAnimateFinalTabAwayEvent())
                 }
             }
         }
@@ -380,7 +381,7 @@ class BubbleFlowDraggable @JvmOverloads constructor(
                 // This is perfectly safe, because the view doesn't get destroyed until it has animated off screen.
                 val event = MainController.BeginAnimateFinalTabAwayEvent()
                 event.mTab = tab
-                MainApplication.postEvent(context, event)
+                EventBus.post(event)
             }
         }
     }

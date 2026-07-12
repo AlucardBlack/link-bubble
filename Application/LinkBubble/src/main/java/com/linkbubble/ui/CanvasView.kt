@@ -21,14 +21,13 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import com.linkbubble.Config
 import com.linkbubble.Constant
-import com.linkbubble.MainApplication
 import com.linkbubble.MainController
 import com.linkbubble.R
 import com.linkbubble.Settings
 import com.linkbubble.physics.Circle
+import com.linkbubble.util.EventBus
 import com.linkbubble.util.Util
 import com.linkbubble.webrender.WebRenderer
-import com.squareup.otto.Subscribe
 import java.util.Vector
 
 class CanvasView(context: Context) : FrameLayout(context) {
@@ -59,7 +58,18 @@ class CanvasView(context: Context) : FrameLayout(context) {
     private val mMinimizeExpandedActivityEvent = ExpandedActivity.MinimizeExpandedActivityEvent()
 
     init {
-        MainApplication.registerForBus(context, this)
+        EventBus.subscribe(this, MainController.CurrentTabResumeEvent::class.java, ::onCurrentTabResume)
+        EventBus.subscribe(this, MainController.CurrentTabPauseEvent::class.java, ::onCurrentTabPause)
+        EventBus.subscribe(this, MainController.CurrentTabChangedEvent::class.java, ::onCurrentTabChanged)
+        EventBus.subscribe(this, MainController.BeginBubbleDragEvent::class.java, ::onBeginBubbleDrag)
+        EventBus.subscribe(this, MainController.EndBubbleDragEvent::class.java, ::onEndBubbleDragEvent)
+        EventBus.subscribe(this, MainController.BeginCollapseTransitionEvent::class.java, ::onBeginCollapseTransition)
+        EventBus.subscribe(this, MainController.BeginExpandTransitionEvent::class.java, ::onBeginExpandTransition)
+        EventBus.subscribe(this, MainController.EndCollapseTransitionEvent::class.java, ::onEndCollapseTransition)
+        EventBus.subscribe(this, MainController.OrientationChangedEvent::class.java, ::onOrientationChanged)
+        EventBus.subscribe(this, MainController.BeginAnimateFinalTabAwayEvent::class.java, ::onBeginAnimateFinalTabAway)
+        EventBus.subscribe(this, MainController.HideContentEvent::class.java, ::onHideContentEvent)
+        EventBus.subscribe(this, Settings.OnConsumeBubblesChangedEvent::class.java, ::onConsumeBubblesChanged)
 
         val canvasMaskHeight = resources.getDimensionPixelSize(R.dimen.canvas_mask_height)
 
@@ -350,8 +360,6 @@ class CanvasView(context: Context) : FrameLayout(context) {
         applyContentViewAlpha(0)
     }
 
-    @Suppress("unused")
-    @Subscribe
     fun onCurrentTabResume(e: MainController.CurrentTabResumeEvent) {
         if (null == e.mTab) {
             return
@@ -367,8 +375,6 @@ class CanvasView(context: Context) : FrameLayout(context) {
         webRenderer.resumeOnSetActive()
     }
 
-    @Suppress("unused")
-    @Subscribe
     fun onCurrentTabPause(e: MainController.CurrentTabPauseEvent) {
         if (null == e.mTab) {
             return
@@ -384,14 +390,10 @@ class CanvasView(context: Context) : FrameLayout(context) {
         webRenderer.pauseOnSetInactive()
     }
 
-    @Suppress("unused")
-    @Subscribe
     fun onCurrentTabChanged(e: MainController.CurrentTabChangedEvent) {
         setContentView(e.mTab, e.mUnhideNotification)
     }
 
-    @Suppress("unused")
-    @Subscribe
     fun onBeginBubbleDrag(e: MainController.BeginBubbleDragEvent) {
         mDragging = true
         if (mExpanded) {
@@ -410,8 +412,6 @@ class CanvasView(context: Context) : FrameLayout(context) {
         }
     }
 
-    @Suppress("unused")
-    @Subscribe
     fun onEndBubbleDragEvent(e: MainController.EndBubbleDragEvent) {
         mDragging = false
         mExpanded = false
@@ -419,11 +419,9 @@ class CanvasView(context: Context) : FrameLayout(context) {
         removeView(mContentView)
         visibility = GONE
         MainController.get()!!.showBadge(true)
-        MainApplication.postEvent(context, mMinimizeExpandedActivityEvent)
+        EventBus.post(mMinimizeExpandedActivityEvent)
     }
 
-    @Suppress("unused")
-    @Subscribe
     fun onBeginCollapseTransition(e: MainController.BeginCollapseTransitionEvent) {
         if (!mExpanded) {
             return
@@ -436,12 +434,10 @@ class CanvasView(context: Context) : FrameLayout(context) {
 
         // TODO: replace 24 with Android N version once we update an SDK
         if (Build.VERSION.SDK_INT < 24 || !e.mFromCloseSystemDialogs) {
-            MainApplication.postEvent(context, mMinimizeExpandedActivityEvent)
+            EventBus.post(mMinimizeExpandedActivityEvent)
         }
     }
 
-    @Suppress("unused")
-    @Subscribe
     fun onBeginExpandTransition(e: MainController.BeginExpandTransitionEvent) {
         mExpanded = true
         fadeIn()
@@ -455,16 +451,12 @@ class CanvasView(context: Context) : FrameLayout(context) {
         }
     }
 
-    @Suppress("unused")
-    @Subscribe
     fun onEndCollapseTransition(e: MainController.EndCollapseTransitionEvent) {
         if (mExpanded) {
             fadeOut()
         }
     }
 
-    @Suppress("unused")
-    @Subscribe
     fun onOrientationChanged(e: MainController.OrientationChangedEvent) {
         for (i in mTargets.indices) {
             val bt = mTargets[i]
@@ -475,8 +467,6 @@ class CanvasView(context: Context) : FrameLayout(context) {
         }
     }
 
-    @Suppress("unused")
-    @Subscribe
     fun onBeginAnimateFinalTabAway(event: MainController.BeginAnimateFinalTabAwayEvent) {
         fadeOut()
         hideContentView()
@@ -486,15 +476,11 @@ class CanvasView(context: Context) : FrameLayout(context) {
         onBeginCollapseTransition(collapseTransitionEvent)
     }
 
-    @Suppress("unused")
-    @Subscribe
     fun onHideContentEvent(event: MainController.HideContentEvent) {
         mExpanded = false
         setContentView(null, false)
     }
 
-    @Suppress("unused")
-    @Subscribe
     fun onConsumeBubblesChanged(event: Settings.OnConsumeBubblesChangedEvent) {
         for (i in mTargets.indices) {
             mTargets[i].onConsumeBubblesChanged()
@@ -514,7 +500,7 @@ class CanvasView(context: Context) : FrameLayout(context) {
             bt.destroy()
         }
 
-        MainApplication.unregisterForBus(context, this)
+        EventBus.unsubscribeAll(this)
 
         MainController.removeRootWindow(this)
         if (mStatusBarCoverView != null) {

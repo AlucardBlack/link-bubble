@@ -13,11 +13,10 @@ import android.webkit.DownloadListener
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import com.linkbubble.Constant
-import com.linkbubble.MainApplication
 import com.linkbubble.MainController
 import com.linkbubble.Settings
+import com.linkbubble.util.EventBus
 import com.linkbubble.util.Util
-import com.squareup.otto.Subscribe
 
 class ArticleRenderer(context: Context, controller: Controller, articleContent: ArticleContent, articleRendererPlaceholder: View) {
 
@@ -106,7 +105,12 @@ class ArticleRenderer(context: Context, controller: Controller, articleContent: 
         display(articleContent, false)
 
         Log.d("Article", "ArticleRenderer()")
-        MainApplication.registerForBus(context, this)
+        EventBus.subscribe(this, MainController.UserPresentEvent::class.java, ::onUserPresentEvent)
+        EventBus.subscribe(this, MainController.ScreenOffEvent::class.java, ::onScreenOffEvent)
+        EventBus.subscribe(this, MainController.BeginCollapseTransitionEvent::class.java, ::onBeginCollapseTransitionEvent)
+        EventBus.subscribe(this, MainController.BeginExpandTransitionEvent::class.java, ::onBeginExpandTransitionEvent)
+        EventBus.subscribe(this, MainController.HideContentEvent::class.java, ::onHideContentEvent)
+        EventBus.subscribe(this, MainController.UnhideContentEvent::class.java, ::onUnhideContentEvent)
         mRegisteredForBus = true
     }
 
@@ -123,7 +127,7 @@ class ArticleRenderer(context: Context, controller: Controller, articleContent: 
 
     fun destroy() {
         if (mRegisteredForBus) {
-            MainApplication.unregisterForBus(mContext, this)
+            EventBus.unsubscribeAll(this)
             mRegisteredForBus = false
         }
         mIsDestroyed = true
@@ -155,8 +159,6 @@ class ArticleRenderer(context: Context, controller: Controller, articleContent: 
         Log.d(BATTERY_SAVE_TAG, msg)
     }
 
-    @Suppress("unused")
-    @Subscribe
     fun onUserPresentEvent(event: MainController.UserPresentEvent) {
         when (Settings.get().getWebViewBatterySaveMode()) {
             Settings.WebViewBatterySaveMode.Default -> webviewResume("userPresent")
@@ -164,8 +166,6 @@ class ArticleRenderer(context: Context, controller: Controller, articleContent: 
         }
     }
 
-    @Suppress("unused")
-    @Subscribe
     fun onScreenOffEvent(event: MainController.ScreenOffEvent) {
         when (Settings.get().getWebViewBatterySaveMode()) {
             Settings.WebViewBatterySaveMode.Aggressive, Settings.WebViewBatterySaveMode.Default -> webviewPause("screenOff")
@@ -173,8 +173,6 @@ class ArticleRenderer(context: Context, controller: Controller, articleContent: 
         }
     }
 
-    @Suppress("unused")
-    @Subscribe
     fun onBeginCollapseTransitionEvent(event: MainController.BeginCollapseTransitionEvent) {
         when (Settings.get().getWebViewBatterySaveMode()) {
             Settings.WebViewBatterySaveMode.Aggressive -> webviewPause("beginCollapse")
@@ -182,8 +180,6 @@ class ArticleRenderer(context: Context, controller: Controller, articleContent: 
         }
     }
 
-    @Suppress("unused")
-    @Subscribe
     fun onBeginExpandTransitionEvent(event: MainController.BeginExpandTransitionEvent) {
         when (Settings.get().getWebViewBatterySaveMode()) {
             Settings.WebViewBatterySaveMode.Aggressive -> webviewResume("beginExpand")
@@ -191,8 +187,6 @@ class ArticleRenderer(context: Context, controller: Controller, articleContent: 
         }
     }
 
-    @Suppress("unused")
-    @Subscribe
     fun onHideContentEvent(event: MainController.HideContentEvent) {
         when (Settings.get().getWebViewBatterySaveMode()) {
             Settings.WebViewBatterySaveMode.Aggressive, Settings.WebViewBatterySaveMode.Default -> webviewPause("hide event")
@@ -200,8 +194,6 @@ class ArticleRenderer(context: Context, controller: Controller, articleContent: 
         }
     }
 
-    @Suppress("unused")
-    @Subscribe
     fun onUnhideContentEvent(event: MainController.UnhideContentEvent) {
         when (Settings.get().getWebViewBatterySaveMode()) {
             Settings.WebViewBatterySaveMode.Default -> webviewResume("unhide event")

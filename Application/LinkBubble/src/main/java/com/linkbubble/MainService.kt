@@ -23,7 +23,7 @@ import com.linkbubble.ui.NotificationHideActivity
 import com.linkbubble.ui.NotificationUnhideActivity
 import com.linkbubble.util.Analytics
 import com.linkbubble.util.CrashTracking
-import com.squareup.otto.Subscribe
+import com.linkbubble.util.EventBus
 
 class MainService : Service() {
 
@@ -145,14 +145,16 @@ class MainService : Service() {
         filter.addAction(Intent.ACTION_USER_PRESENT)
         ContextCompat.registerReceiver(this, mScreenReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
 
-        MainApplication.registerForBus(this, this)
+        EventBus.subscribe(this, ShowDefaultNotificationEvent::class.java, ::onShowDefaultNotificationEvent)
+        EventBus.subscribe(this, ShowUnhideNotificationEvent::class.java, ::onShowUnhideNotificationEvent)
+        EventBus.subscribe(this, ReloadMainServiceEvent::class.java, ::onReloadMainServiceEvent)
         mFullyInitialized = true
     }
 
     override fun onDestroy() {
         if (mFullyInitialized) {
-            MainApplication.postEvent(this, OnDestroyMainServiceEvent())
-            MainApplication.unregisterForBus(this, this)
+            EventBus.post(OnDestroyMainServiceEvent())
+            EventBus.unsubscribeAll(this)
             unregisterReceiver(mScreenReceiver)
             unregisterReceiver(mDialogReceiver)
             unregisterReceiver(mBroadcastReceiver)
@@ -222,22 +224,16 @@ class MainService : Service() {
         startForeground(NotificationUnhideActivity.NOTIFICATION_ID, notificationBuilder.build())
     }
 
-    @Suppress("unused")
-    @Subscribe
     fun onShowDefaultNotificationEvent(event: ShowDefaultNotificationEvent) {
         cancelCurrentNotification()
         showDefaultNotification()
     }
 
-    @Suppress("unused")
-    @Subscribe
     fun onShowUnhideNotificationEvent(event: ShowUnhideNotificationEvent) {
         cancelCurrentNotification()
         showUnhideHiddenNotification()
     }
 
-    @Suppress("unused")
-    @Subscribe
     fun onReloadMainServiceEvent(event: ReloadMainServiceEvent) {
         stopSelf()
 

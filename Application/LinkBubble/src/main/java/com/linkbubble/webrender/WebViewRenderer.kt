@@ -40,18 +40,17 @@ import android.widget.EditText
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import com.linkbubble.Constant
-import com.linkbubble.MainApplication
 import com.linkbubble.MainController
 import com.linkbubble.R
 import com.linkbubble.Settings
 import com.linkbubble.articlerender.ArticleContent
 import com.linkbubble.util.Analytics
 import com.linkbubble.util.CrashTracking
+import com.linkbubble.util.EventBus
 import com.linkbubble.util.NetworkConnectivity
 import com.linkbubble.util.NetworkReceiver
 import com.linkbubble.util.PageInspector
 import com.linkbubble.util.Util
-import com.squareup.otto.Subscribe
 import java.net.MalformedURLException
 import java.net.URL
 
@@ -534,13 +533,18 @@ class WebViewRenderer(context: Context, controller: Controller, webRendererPlace
 
         mPageInspector = PageInspector(mContext, mWebView, mOnPageInspectorItemFoundListener)
 
-        MainApplication.registerForBus(context, this)
+        EventBus.subscribe(this, MainController.UserPresentEvent::class.java, ::onUserPresentEvent)
+        EventBus.subscribe(this, MainController.ScreenOffEvent::class.java, ::onScreenOffEvent)
+        EventBus.subscribe(this, MainController.BeginCollapseTransitionEvent::class.java, ::onBeginCollapseTransitionEvent)
+        EventBus.subscribe(this, MainController.BeginExpandTransitionEvent::class.java, ::onBeginExpandTransitionEvent)
+        EventBus.subscribe(this, MainController.HideContentEvent::class.java, ::onHideContentEvent)
+        EventBus.subscribe(this, MainController.UnhideContentEvent::class.java, ::onUnhideContentEvent)
         mRegisteredForBus = true
     }
 
     override fun destroy() {
         if (mRegisteredForBus) {
-            MainApplication.unregisterForBus(mContext, this)
+            EventBus.unsubscribeAll(this)
             mRegisteredForBus = false
         }
         cancelBuildArticleContentTask()
@@ -747,8 +751,6 @@ class WebViewRenderer(context: Context, controller: Controller, webRendererPlace
         }
     }
 
-    @Suppress("unused")
-    @Subscribe
     fun onUserPresentEvent(event: MainController.UserPresentEvent) {
         when (Settings.get().getWebViewBatterySaveMode()) {
             Settings.WebViewBatterySaveMode.Default -> webviewResume("userPresent")
@@ -756,8 +758,6 @@ class WebViewRenderer(context: Context, controller: Controller, webRendererPlace
         }
     }
 
-    @Suppress("unused")
-    @Subscribe
     fun onScreenOffEvent(event: MainController.ScreenOffEvent) {
         when (Settings.get().getWebViewBatterySaveMode()) {
             Settings.WebViewBatterySaveMode.Aggressive, Settings.WebViewBatterySaveMode.Default -> webviewPause("screenOff")
@@ -765,8 +765,6 @@ class WebViewRenderer(context: Context, controller: Controller, webRendererPlace
         }
     }
 
-    @Suppress("unused")
-    @Subscribe
     fun onBeginCollapseTransitionEvent(event: MainController.BeginCollapseTransitionEvent) {
         when (Settings.get().getWebViewBatterySaveMode()) {
             Settings.WebViewBatterySaveMode.Aggressive -> webviewPause("beginCollapse")
@@ -774,14 +772,10 @@ class WebViewRenderer(context: Context, controller: Controller, webRendererPlace
         }
     }
 
-    @Suppress("unused")
-    @Subscribe
     fun onBeginExpandTransitionEvent(event: MainController.BeginExpandTransitionEvent) {
         // Do nothing here for now as we Resume current active Tab on resumeOnSetActive
     }
 
-    @Suppress("unused")
-    @Subscribe
     fun onHideContentEvent(event: MainController.HideContentEvent) {
         when (Settings.get().getWebViewBatterySaveMode()) {
             Settings.WebViewBatterySaveMode.Aggressive, Settings.WebViewBatterySaveMode.Default -> webviewPause("hide event")
@@ -789,8 +783,6 @@ class WebViewRenderer(context: Context, controller: Controller, webRendererPlace
         }
     }
 
-    @Suppress("unused")
-    @Subscribe
     fun onUnhideContentEvent(event: MainController.UnhideContentEvent) {
         when (Settings.get().getWebViewBatterySaveMode()) {
             Settings.WebViewBatterySaveMode.Default -> webviewResume("unhide event")
