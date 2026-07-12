@@ -17,8 +17,10 @@ import com.linkbubble.Constant
 import com.linkbubble.MainController
 import com.linkbubble.Settings
 import com.linkbubble.articlerender.ArticleContent
-import com.squareup.picasso.Picasso
-import com.squareup.picasso.Transformation
+import coil.imageLoader
+import coil.request.ImageRequest
+import coil.size.Size
+import coil.transform.Transformation
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
@@ -211,7 +213,11 @@ class PageInspector(
                 }
                 transformation.setListener(mOnItemFoundListener)
                 transformation.mTouchIconPageUrl = mWebViewUrl
-                Picasso.get().load(url.toString()).transform(transformation).fetch()
+                val request = ImageRequest.Builder(mContext)
+                        .data(url.toString())
+                        .transformations(transformation)
+                        .build()
+                mContext.imageLoader.enqueue(request)
             }
 
         }
@@ -299,13 +305,15 @@ class PageInspector(
             }
         }
 
-        override fun transform(source: Bitmap): Bitmap {
-            val w = source.width
+        override val cacheKey: String = "faviconTransformation()"
 
-            var result = source
+        override suspend fun transform(input: Bitmap, size: Size): Bitmap {
+            val w = input.width
+
+            var result = input
             if (w > Constant.TOUCH_ICON_MAX_SIZE) {
                 try {
-                    result = Bitmap.createScaledBitmap(source, Constant.TOUCH_ICON_MAX_SIZE, Constant.TOUCH_ICON_MAX_SIZE, true)
+                    result = Bitmap.createScaledBitmap(input, Constant.TOUCH_ICON_MAX_SIZE, Constant.TOUCH_ICON_MAX_SIZE, true)
                 } catch (e: OutOfMemoryError) {
                 }
             }
@@ -314,10 +322,6 @@ class PageInspector(
             listener?.onTouchIconLoaded(result, mTouchIconPageUrl)
 
             return result
-        }
-
-        override fun key(): String {
-            return "faviconTransformation()"
         }
     }
 

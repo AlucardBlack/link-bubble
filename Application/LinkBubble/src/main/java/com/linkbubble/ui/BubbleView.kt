@@ -17,7 +17,6 @@ import com.linkbubble.MainApplication
 import com.linkbubble.R
 import com.linkbubble.Settings
 import com.linkbubble.util.Util
-import com.squareup.picasso.Transformation
 import org.mozilla.gecko.favicons.Favicons
 import org.mozilla.gecko.favicons.LoadFaviconTask
 import org.mozilla.gecko.favicons.OnFaviconLoadedListener
@@ -159,8 +158,8 @@ open class BubbleView @JvmOverloads constructor(
         setFaviconLoadId(Favicons.NOT_LOADING)
     }
 
-    private class FaviconTransformation : Transformation {
-        override fun transform(source: Bitmap): Bitmap {
+    private class FaviconTransformation {
+        fun transform(source: Bitmap): Bitmap {
             var w = source.width
             var h = source.height
 
@@ -182,10 +181,6 @@ open class BubbleView @JvmOverloads constructor(
             }
 
             return source
-        }
-
-        override fun key(): String {
-            return "faviconTransformation()"
         }
     }
 
