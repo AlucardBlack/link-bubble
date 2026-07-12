@@ -97,7 +97,7 @@ class Settings private constructor(private val mContext: Context) {
             val editor = mSharedPreferences.edit()
             editor.putBoolean("first_run", false)
             editor.putLong(LAST_FLUSH_WEBVIEW_CACHE_TIME, System.currentTimeMillis())
-            editor.commit()
+            editor.apply()
 
             val packageManager = mContext.packageManager
 
@@ -942,7 +942,8 @@ class Settings private constructor(private val mContext: Context) {
         if (currentTabsString != newTabsString) {
             val editor = mSharedPreferences.edit()
             editor.putString(PREFERENCE_CURRENT_TABS, newTabsString)
-            editor.commit()
+            // apply(), not commit() — this runs on the main thread on every tab open/close.
+            editor.apply()
         }
     }
 

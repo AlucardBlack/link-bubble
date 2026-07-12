@@ -280,7 +280,10 @@ class MainController private constructor(context: Context, eventHandler: EventHa
 
         mBubbleDraggable.setOnUpdateListener(object : Draggable.OnUpdateListener {
             override fun onUpdate(draggable: Draggable, dt: Float) {
-                if (!draggable.isDragging) {
+                // While the flow window is GONE (all of collapsed mode), moving it is a
+                // wasted WindowManager IPC per frame; doExpandBubbleFlow() re-syncs once
+                // before flipping it VISIBLE.
+                if (!draggable.isDragging && mBubbleFlowDraggable.visibility == View.VISIBLE) {
                     mBubbleFlowDraggable.syncWithBubble(draggable)
                 }
             }
@@ -588,7 +591,14 @@ class MainController private constructor(context: Context, eventHandler: EventHa
         }
 
         if (!mHiddenByUser) {
-            updateKeyguardLocked()
+            // isKeyguardLocked is a binder IPC; screen on/off/user-present broadcasts
+            // (updateScreenState) already cover state changes, so per-frame polling is
+            // only a safety net for device-admin lockNow() — 2Hz is plenty.
+            val nowMillis = frameTimeNanos / 1000000
+            if (nowMillis - mLastKeyguardCheckTimeMillis >= 500) {
+                mLastKeyguardCheckTimeMillis = nowMillis
+                updateKeyguardLocked()
+            }
         }
 
         if (Constant.PROFILE_FPS) {
@@ -1036,6 +1046,9 @@ class MainController private constructor(context: Context, eventHandler: EventHa
     private fun doExpandBubbleFlow(time: Long, hideDraggable: Boolean) {
         mBeginExpandTransitionEvent.mPeriod = time / 1000.0f
 
+        // The flow stopped tracking the bubble while GONE — reposition it to the
+        // bubble's current spot before it becomes visible.
+        mBubbleFlowDraggable.syncWithBubble(mBubbleDraggable)
         mBubbleFlowDraggable.visibility = View.VISIBLE
         mSetBubbleFlowGone = false // cancel any pending operation to set visibility to GONE (see #190)
         mBubbleFlowDraggable.expand(time, mOnBubbleFlowExpandFinishedListener)
@@ -1169,8 +1182,14 @@ class MainController private constructor(context: Context, eventHandler: EventHa
         }
     }
 
+    private var mKeyguardManager: KeyguardManager? = null
+    private var mLastKeyguardCheckTimeMillis: Long = 0
+
     private fun updateKeyguardLocked() {
-        val keyguardManager = mContext.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager?
+        if (mKeyguardManager == null) {
+            mKeyguardManager = mContext.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager?
+        }
+        val keyguardManager = mKeyguardManager
         if (keyguardManager != null) {
             val isLocked = keyguardManager.isKeyguardLocked
             //Log.d(SCREEN_LOCK_TAG, "keyguardManager.isKeyguardLocked():" + mCanDisplay);
