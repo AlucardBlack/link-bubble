@@ -31,6 +31,7 @@ import android.widget.FrameLayout
 import android.widget.TextView
 import android.widget.Toast
 import com.linkbubble.physics.Draggable
+import com.linkbubble.physics.DraggableHelper
 import com.linkbubble.ui.BubbleDraggable
 import com.linkbubble.ui.BubbleFlowDraggable
 import com.linkbubble.ui.BubbleFlowView
@@ -205,6 +206,8 @@ class MainController private constructor(context: Context, eventHandler: EventHa
     private var mSetBubbleFlowGone = false
     val mSetBubbleFlowGoneRunnable: Runnable = Runnable {
         if (mSetBubbleFlowGone) {
+            // A window that goes GONE mid-follow must still shrink back to normal bounds.
+            mBubbleFlowDraggable.endFollowingBubble()
             mBubbleFlowDraggable.visibility = View.GONE
         }
     }
@@ -299,6 +302,23 @@ class MainController private constructor(context: Context, eventHandler: EventHa
         mOriginalLocationY = mBubbleFlowDraggable.getChildAt(0).y
 
         mBubbleDraggable.setBubbleFlowDraggable(mBubbleFlowDraggable)
+
+        // When the bubble runs a windowed animation (grow-once + translate, see
+        // DraggableHelper.beginWindowExpansion), have the flow window that tracks it per-frame
+        // mirror the optimization instead of paying a WindowManager IPC per synced frame.
+        // On expand the flow is still GONE when this fires — doExpandBubbleFlow() starts the
+        // follow-session in that case, right after making the flow visible.
+        mBubbleDraggable.draggableHelper.setOnWindowedAnimationListener(object : DraggableHelper.OnWindowedAnimationListener {
+            override fun onBegin(fromX: Int, fromY: Int, toX: Int, toY: Int) {
+                if (mBubbleFlowDraggable.visibility == View.VISIBLE) {
+                    mBubbleFlowDraggable.beginFollowingBubble(fromX, fromY, toX, toY)
+                }
+            }
+
+            override fun onEnd() {
+                mBubbleFlowDraggable.endFollowingBubble()
+            }
+        })
 
         updateIncognitoMode(Settings.get().isIncognitoMode)
 
@@ -1054,6 +1074,14 @@ class MainController private constructor(context: Context, eventHandler: EventHa
         // bubble's current spot before it becomes visible.
         mBubbleFlowDraggable.syncWithBubble(mBubbleDraggable)
         mBubbleFlowDraggable.visibility = View.VISIBLE
+        // The bubble's expand flight starts before the flow becomes visible, so the
+        // OnWindowedAnimationListener skipped it — start the follow-session now.
+        val bubbleHelper = mBubbleDraggable.draggableHelper
+        if (bubbleHelper.isWindowedAnimationActive()) {
+            mBubbleFlowDraggable.beginFollowingBubble(
+                    bubbleHelper.getAnimInitialX(), bubbleHelper.getAnimInitialY(),
+                    bubbleHelper.getAnimTargetX(), bubbleHelper.getAnimTargetY())
+        }
         mSetBubbleFlowGone = false // cancel any pending operation to set visibility to GONE (see #190)
         mBubbleFlowDraggable.expand(time, mOnBubbleFlowExpandFinishedListener)
 

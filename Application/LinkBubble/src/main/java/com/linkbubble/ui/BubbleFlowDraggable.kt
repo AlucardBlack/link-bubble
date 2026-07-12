@@ -139,6 +139,9 @@ class BubbleFlowDraggable @JvmOverloads constructor(
             windowManagerParams.x = 0
             windowManagerParams.y = 0
             windowManagerParams.gravity = Gravity.TOP or Gravity.LEFT
+            // Keep the helper's restore-size in sync, else ending a windowed animation after
+            // rotation would restore the stale pre-rotation width.
+            mDraggableHelper.setBaseSize(width, windowManagerParams.height)
 
             setExactPos(0, 0)
         }
@@ -288,6 +291,20 @@ class BubbleFlowDraggable @JvmOverloads constructor(
         val yOffset = (Config.mBubbleHeight.toInt() - mBubbleFlowHeight) / 2
 
         mDraggableHelper.setExactPos(bubbleX + xOffset, bubbleY + yOffset)
+    }
+
+    // Mirror the bubble's windowed animation (see DraggableHelper.beginWindowExpansion) on this
+    // window: grow once across the whole travel path so the per-frame syncWithBubble() calls
+    // translate the view instead of paying a WindowManager IPC per frame.
+    fun beginFollowingBubble(bubbleFromX: Int, bubbleFromY: Int, bubbleToX: Int, bubbleToY: Int) {
+        val xOffset = (Config.mBubbleWidth.toInt() - mBubbleFlowWidth) / 2
+        val yOffset = (Config.mBubbleHeight.toInt() - mBubbleFlowHeight) / 2
+        mDraggableHelper.beginFollow(bubbleFromX + xOffset, bubbleFromY + yOffset,
+                bubbleToX + xOffset, bubbleToY + yOffset)
+    }
+
+    fun endFollowingBubble() {
+        mDraggableHelper.endFollow()
     }
 
     override fun onOrientationChanged() {

@@ -100,16 +100,38 @@ class DraggableHelper(
     // a WindowManager IPC call every frame - see the AnimationType-vs-duration gating in setTargetPos.
     private var mLogicalX = mWindowManagerParams.x
     private var mLogicalY = mWindowManagerParams.y
-    private val mOriginalWidth = mWindowManagerParams.width
-    private val mOriginalHeight = mWindowManagerParams.height
+    private var mOriginalWidth = mWindowManagerParams.width
+    private var mOriginalHeight = mWindowManagerParams.height
     private var mWindowExpanded = false
     private var mWindowOriginX = 0
     private var mWindowOriginY = 0
+    private var mFollowActive = false
+    private var mOnWindowedAnimationListener: OnWindowedAnimationListener? = null
 
     interface AnimationEventListener {
         fun onAnimationComplete()
         fun onCancel()
     }
+
+    // Fired when a windowed (grow-once + translate) animation starts/ends on this helper,
+    // so a follower window tracking this one per-frame can mirror the optimization.
+    interface OnWindowedAnimationListener {
+        fun onBegin(fromX: Int, fromY: Int, toX: Int, toY: Int)
+        fun onEnd()
+    }
+
+    fun setOnWindowedAnimationListener(listener: OnWindowedAnimationListener?) {
+        mOnWindowedAnimationListener = listener
+    }
+
+    fun isWindowedAnimationActive(): Boolean {
+        return mWindowExpanded && !mFollowActive
+    }
+
+    fun getAnimInitialX(): Int = mInitialX
+    fun getAnimInitialY(): Int = mInitialY
+    fun getAnimTargetX(): Int = mTargetX
+    fun getAnimTargetY(): Int = mTargetY
 
     private val mOnTouchListener = View.OnTouchListener { v, event ->
         when (event.action) {
@@ -299,6 +321,8 @@ class DraggableHelper(
         mView.translationY = (fromY - mWindowOriginY).toFloat()
 
         mWindowExpanded = true
+
+        mOnWindowedAnimationListener?.onBegin(fromX, fromY, toX, toY)
     }
 
     // Shrinks the real overlay window back to its normal bubble-sized bounds at (finalX, finalY)
@@ -309,6 +333,7 @@ class DraggableHelper(
             return
         }
         mWindowExpanded = false
+        mFollowActive = false
 
         mView.translationX = 0f
         mView.translationY = 0f
@@ -321,9 +346,64 @@ class DraggableHelper(
             mWindowManagerParams.flags = mWindowManagerParams.flags and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE.inv()
             MainController.updateRootWindowLayout(mView, mWindowManagerParams)
         }
+
+        mOnWindowedAnimationListener?.onEnd()
+    }
+
+    // Follow-session: the same grow-once + translate optimization as beginWindowExpansion, but for
+    // a window that is repositioned externally every frame via setExactPos() (glued to another
+    // window's animation) rather than driven by this helper's own setTargetPos() animation.
+    fun beginFollow(fromX: Int, fromY: Int, toX: Int, toY: Int) {
+        if (!mAlive || mWindowExpanded) {
+            return
+        }
+
+        val left = Math.min(fromX, toX)
+        val top = Math.min(fromY, toY)
+        mWindowOriginX = left
+        mWindowOriginY = top
+
+        mWindowManagerParams.x = left
+        mWindowManagerParams.y = top
+        mWindowManagerParams.width = Math.max(fromX, toX) - left + mOriginalWidth
+        mWindowManagerParams.height = Math.max(fromY, toY) - top + mOriginalHeight
+        mWindowManagerParams.flags = mWindowManagerParams.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+        MainController.updateRootWindowLayout(mView, mWindowManagerParams)
+
+        mView.translationX = (mLogicalX - left).toFloat()
+        mView.translationY = (mLogicalY - top).toFloat()
+
+        mWindowExpanded = true
+        mFollowActive = true
+    }
+
+    fun endFollow() {
+        if (!mFollowActive) {
+            return
+        }
+        endWindowExpansion(mLogicalX, mLogicalY)
+    }
+
+    // The window's normal (non-expanded) size is captured at construction, but callers may resize
+    // the real window later (e.g. BubbleFlowDraggable.configure() on rotation) - they must refresh
+    // the base size here or endWindowExpansion() would restore stale pre-rotation bounds.
+    fun setBaseSize(width: Int, height: Int) {
+        mOriginalWidth = width
+        mOriginalHeight = height
     }
 
     fun setExactPos(x: Int, y: Int) {
+        if (mFollowActive && mWindowExpanded) {
+            // Follow-session: glued to another window's animation, repositioned every frame.
+            // Translate within the pre-grown window instead of a WindowManager IPC per frame.
+            mLogicalX = x
+            mLogicalY = y
+            mTargetX = x
+            mTargetY = y
+            mView.translationX = (x - mWindowOriginX).toFloat()
+            mView.translationY = (y - mWindowOriginY).toFloat()
+            return
+        }
         if (mWindowExpanded) {
             endWindowExpansion(x, y)
         }
