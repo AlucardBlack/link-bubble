@@ -398,12 +398,12 @@ open class BubbleFlowView @JvmOverloads constructor(
             val ratio = 1f - ((xDelta - mFullScaleX) / (mMinScaleX - mFullScaleX))
             targetScale = MIN_SCALE + (ratio * (1f - MIN_SCALE))
         }
-        val scaleDelta = Math.abs(scaleX - targetScale)
+        // No explicit invalidate() needed: setScaleX/Y already schedule the (cheaper)
+        // invalidateViewProperty path when the value actually changes. The old code also
+        // compared against this container's own scaleX (always 1) rather than the child's,
+        // so it force-invalidated nearly every scaled child on every scroll delta.
         view.scaleX = targetScale
         view.scaleY = targetScale
-        if (scaleDelta > .001f) {
-            view.invalidate()
-        }
     }
 
     fun getItemCount(): Int {
