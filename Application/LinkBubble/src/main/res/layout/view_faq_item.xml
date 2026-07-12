@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<com.linkbubble.ui.FAQItem
+<com.peek.browser.ui.FAQItem
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_height="wrap_content"
@@ -27,4 +27,4 @@
         android:focusable="false"
         android:focusableInTouchMode="false"/>
 
-</com.linkbubble.ui.FAQItem>
+</com.peek.browser.ui.FAQItem>

@@ -1,6 +1,6 @@
 #include <string.h>
 #include <jni.h>
-#include "com_linkbubble_adblock_ABPFilterParser.h"
+#include "com_peek_browser_adblock_ABPFilterParser.h"
 #include "ABPFilterParser.h"
 
 #include <android/log.h>
@@ -14,7 +14,7 @@
 ABPFilterParser parser;
 
 /*
- * Class:     com_linkbubble_adblock_ABPFilterParser
+ * Class:     com_peek_browser_adblock_ABPFilterParser
  * Method:    parseList
  * Signature: (Ljava/lang/String;)V
  *
@@ -22,18 +22,18 @@ ABPFilterParser parser;
  * deep-copied internally (see Filter::data), so the input string does not need to
  * outlive this call.
  */
-JNIEXPORT void JNICALL Java_com_linkbubble_adblock_ABPFilterParser_parseList(JNIEnv *env, jobject obj, jstring data) {
+JNIEXPORT void JNICALL Java_com_peek_browser_adblock_ABPFilterParser_parseList(JNIEnv *env, jobject obj, jstring data) {
     const char *nativeData = env->GetStringUTFChars(data, 0);
     parser.parse(nativeData);
     env->ReleaseStringUTFChars(data, nativeData);
 }
 
 /*
- * Class:     com_linkbubble_adblock_ABPFilterParser
+ * Class:     com_peek_browser_adblock_ABPFilterParser
  * Method:    stringFromJNI
  * Signature: ()Ljava/lang/String;
  */
-JNIEXPORT jboolean JNICALL Java_com_linkbubble_adblock_ABPFilterParser_shouldBlock(JNIEnv *env, jobject obj, jstring baseHost, jstring input, jstring filterOption) {
+JNIEXPORT jboolean JNICALL Java_com_peek_browser_adblock_ABPFilterParser_shouldBlock(JNIEnv *env, jobject obj, jstring baseHost, jstring input, jstring filterOption) {
     const char *nativeBaseHost = env->GetStringUTFChars(baseHost, 0);
     const char *nativeInput = env->GetStringUTFChars(input, 0);
     const char *nativeFilterOption = env->GetStringUTFChars(filterOption, 0);

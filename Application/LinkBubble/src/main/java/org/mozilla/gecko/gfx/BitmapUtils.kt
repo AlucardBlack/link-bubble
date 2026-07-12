@@ -15,7 +15,7 @@ import android.net.Uri
 import android.text.TextUtils
 import android.util.Base64
 import android.util.Log
-import com.linkbubble.R
+import com.peek.browser.R
 import org.mozilla.gecko.util.ThreadUtils
 import org.mozilla.gecko.util.UiAsyncTask
 import java.io.IOException

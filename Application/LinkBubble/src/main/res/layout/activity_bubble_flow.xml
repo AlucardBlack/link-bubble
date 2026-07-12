@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <com.linkbubble.ui.BubbleFlowView
+    <com.peek.browser.ui.BubbleFlowView
         android:id="@+id/bubble_flow"
         android:layout_width="fill_parent"
         android:layout_height="@dimen/bubble_pager_height"

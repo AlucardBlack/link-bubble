@@ -39,8 +39,8 @@ import java.util.zip.InflaterInputStream
 class HtmlFetcher {
 
     // We never use it, maybe we should remove it in future
-    private var referrer = "https://www.linkbubble.com"
-    private var userAgent = "Mozilla/5.0 (compatible; LinkBubble-ClearView; +$referrer)"
+    private var referrer = ""
+    private var userAgent = "Mozilla/5.0 (compatible; Peek-Reader)"
     private var cacheControl = "max-age=0"
     private var language = "en-us"
     private var accept = "application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5"

@@ -6,7 +6,7 @@ package org.mozilla.gecko.favicons.cache
 
 import android.graphics.Bitmap
 import android.util.Log
-import com.linkbubble.util.CrashTracking
+import com.peek.browser.util.CrashTracking
 import org.mozilla.gecko.gfx.BitmapUtils
 import java.util.Collections
 
@@ -132,7 +132,7 @@ class FaviconsForURL @JvmOverloads constructor(size: Int, @JvmField val mHasFail
                         mDominantColor = BitmapUtils.getDominantColor(element.mFaviconPayload)
                         return mDominantColor
                     } catch (ex: IllegalStateException) {
-                        // https://crashlytics.com/digital-ashes/android/apps/com.linkbubble.playstore/issues/532b555ffabb27481b16d958
+                        // https://crashlytics.com/digital-ashes/android/apps/com.peek.browser.playstore/issues/532b555ffabb27481b16d958
                         CrashTracking.logHandledException(ex)
                     }
                 }

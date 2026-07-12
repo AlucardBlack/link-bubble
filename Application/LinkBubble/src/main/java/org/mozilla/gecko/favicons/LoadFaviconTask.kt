@@ -8,7 +8,7 @@ import android.graphics.Bitmap
 import android.os.Handler
 import android.text.TextUtils
 import android.util.Log
-import com.linkbubble.MainApplication
+import com.peek.browser.MainApplication
 import org.mozilla.gecko.gfx.BitmapUtils
 import org.mozilla.gecko.util.UiAsyncTask
 import java.io.IOException

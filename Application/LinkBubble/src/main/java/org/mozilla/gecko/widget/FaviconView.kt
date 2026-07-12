@@ -13,8 +13,8 @@ import android.graphics.RectF
 import android.util.AttributeSet
 import android.widget.ImageView
 import androidx.palette.graphics.Palette
-import com.linkbubble.Constant
-import com.linkbubble.R
+import com.peek.browser.Constant
+import com.peek.browser.R
 import org.mozilla.gecko.favicons.Favicons
 
 /**

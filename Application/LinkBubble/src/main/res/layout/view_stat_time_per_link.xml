@@ -9,7 +9,7 @@
     android:orientation="vertical"
     android:layout_marginBottom="40dp">
 
-    <com.linkbubble.ui.CondensedTextView
+    <com.peek.browser.ui.CondensedTextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/stat_saves_you"
@@ -17,7 +17,7 @@
         android:textColor="@color/color_highlight"
         android:textAppearance="?android:attr/textAppearanceMedium"/>
 
-    <com.linkbubble.ui.CondensedTextView
+    <com.peek.browser.ui.CondensedTextView
         android:id="@+id/time_per_link"
         android:layout_width="@dimen/stat_bubble_size"
         android:layout_height="@dimen/stat_bubble_size"
@@ -31,7 +31,7 @@
         android:background="@drawable/stat_background_brave_orange"
         tools:ignore="HardcodedText"/>
 
-    <com.linkbubble.ui.CondensedTextView
+    <com.peek.browser.ui.CondensedTextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/stat_per_link"

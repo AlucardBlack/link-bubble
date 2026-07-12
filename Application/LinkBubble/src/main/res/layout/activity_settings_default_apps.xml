@@ -15,7 +15,7 @@
     <fragment
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:name="com.linkbubble.ui.SettingsDefaultAppsActivity$SettingsDefaultAppsFragment"
+        android:name="com.peek.browser.ui.SettingsDefaultAppsActivity$SettingsDefaultAppsFragment"
         android:id="@+id/fragment" />
 
 </LinearLayout>

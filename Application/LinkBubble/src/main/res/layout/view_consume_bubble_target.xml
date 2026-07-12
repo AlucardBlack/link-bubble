@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<com.linkbubble.ui.BubbleTargetView
+<com.peek.browser.ui.BubbleTargetView
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="@dimen/bubble_icon_size"
     android:layout_height="@dimen/bubble_icon_size">
@@ -19,4 +19,4 @@
         android:scaleType="centerInside"
         android:contentDescription="@string/content_description_target_icon"/>
 
-</com.linkbubble.ui.BubbleTargetView>
+</com.peek.browser.ui.BubbleTargetView>

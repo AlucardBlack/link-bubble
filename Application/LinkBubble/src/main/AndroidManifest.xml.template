@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.linkbubble" >
+    package="com.peek.browser" >
 
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -12,9 +12,9 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
 
     <application
-        android:name="com.linkbubble.MainApplication"
+        android:name="com.peek.browser.MainApplication"
         android:allowBackup="true"
-        android:icon="@drawable/ic_launcher"
+        android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:theme="@android:style/Theme.Holo.Light"
         android:windowOptOutEdgeToEdgeEnforcement="true" >
@@ -29,7 +29,7 @@
         <activity
             android:name=".ui.BubbleFlowActivity"
             android:theme="@android:style/Theme.Holo.Light"
-            android:label="LinkBubble - BubbleFlow"
+            android:label="Peek"
             android:excludeFromRecents="false">
 
             <intent-filter>
@@ -171,7 +171,7 @@
             </intent-filter>
         </activity>
 
-        <service android:name="com.linkbubble.MainService"
+        <service android:name="com.peek.browser.MainService"
                  android:label="@string/service_name"
             android:exported="false"
             android:foregroundServiceType="specialUse">

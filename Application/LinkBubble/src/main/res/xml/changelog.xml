@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <changelog>
     <release version="1.9.58">
-        <change>NEW: Renamed to Link Bubble.</change>
+        <change>NEW: Renamed to Peek.</change>
         <change>NEW: Added a link to the new Brave browser to the fallback list.</change>
         <change>NEW: Changed default to use Brave browser, users can change this in Settings->Default apps.</change>
         <change>NEW: Added a new one time notification to download the new Brave browser.</change>
@@ -114,15 +114,15 @@
         <change>BUG FIX: URL input view now respects theme preferences.</change>
     </release>
     <release version="1.9.0">
-        <change>IMPROVEMENT: Rebranded to Link Bubble.</change>
+        <change>IMPROVEMENT: Rebranded to Peek.</change>
         <change>IMPROVEMENT: Turned on Tracking Protection feature by default (can be turned off in Settings->More).</change>
         <change>IMPROVEMENT: Turned on Ad Block feature by default (can be turned off in Settings->More).</change>
-        <change>IMPROVEMENT: Added disable protection option to easily whitelist at the site level (menu item ’Enable Link Bubble shields’).</change>
+        <change>IMPROVEMENT: Added disable protection option to easily whitelist at the site level (menu item ’Enable Peek shields’).</change>
         <change>BUG FIX: Fixed blank bubble after resume from unlock.</change>
         <change>BUG FIX: Fixed top crashes.</change>
     </release>
     <release version="1.8.2">
-        <change>IMPROVEMENT: Added disable protection option to easily whitelist at the site level (menu item ’Link Bubble site protection’).</change>
+        <change>IMPROVEMENT: Added disable protection option to easily whitelist at the site level (menu item ’Peek site protection’).</change>
     </release>
     <release version="1.8.1">
         <change>IMPROVEMENT: Added HTTPS Everywhere feature (which can be turned on in Settings->More).</change>
@@ -184,7 +184,7 @@
     </release>
 
     <release version="1.6.6">
-        <change>BUG FIX: Fix an occasional crash when opening Link Bubble.</change>
+        <change>BUG FIX: Fix an occasional crash when opening Peek.</change>
         <change>REMOVED: Unused GET_ACCOUNTS permission.</change>
     </release>
 
@@ -210,7 +210,7 @@
     </release>
 
     <release version="1.6.0">
-        <change>NEW: Link Bubble is now fully free! Enjoy unlimited bubbles and all pro features for free.</change>
+        <change>NEW: Peek is now fully free! Enjoy unlimited bubbles and all pro features for free.</change>
         <change>NEW: Themes now also apply to reading mode.</change>
         <change>IMPROVEMENT: Offline bubble reloading will now only reload the most recent bubble. This is to reduce memory usage while also improving loading speed and stability.</change>
     </release>
@@ -250,7 +250,7 @@
     </release>
 
     <release version="1.4.7" versioncode="14700">
-        <change>BUG FIX: Fix tab icons displaying when Link Bubble is minimized (thanks @GeneralChops90).</change>
+        <change>BUG FIX: Fix tab icons displaying when Peek is minimized (thanks @GeneralChops90).</change>
         <change>BUG FIX: Fix webpage scrolling becoming unresponsive after dismissing a JavaScript alert (thanks +Arpith Sharma).</change>
     </release>
 
@@ -268,7 +268,7 @@
 
     <release version="1.4.4" versioncode="14400">
         <change>IMPROVEMENT: Use Android L's Up button throughout Settings.</change>
-        <change>CHANGE: Taper back the animation as Link Bubble is opened via a launcher.</change>
+        <change>CHANGE: Taper back the animation as Peek is opened via a launcher.</change>
         <change>CHANGE: Default zoom level is now 100%.</change>
         <change>CHANGE: Reading Mode uses default zoom level.</change>
         <change>CHANGE: Don't list the Google Photos app in the "Intercept links from" dialog. This app is actually the same app as Google+, and listing them both only causes confusion.</change>
@@ -279,7 +279,7 @@
     <release version="1.4.3" versioncode="14300">
         <change>IMPROVEMENT: Updated Chinese (Simplified), Chinese (Taiwan), Dutch, French, Russian translations. Thanks to all the volunteer translators!</change>
         <change>BUG FIX: Dialogs display correctly when using Dark theme.</change>
-        <change>BUG FIX: Fix overly large Link Bubble icon on dialogs on lower-resolution devices.</change>
+        <change>BUG FIX: Fix overly large Peek icon on dialogs on lower-resolution devices.</change>
     </release>
 
     <release version="1.4.2" versioncode="14200">
@@ -298,7 +298,7 @@
         <change>NEW: Select between light and dark themes.</change>
         <change>NEW: Battery Save Mode (Beta).</change>
         <change>IMPROVEMENT: Display icons on Settings (where appropriate).</change>
-        <change>CHANGE: Made the Link Bubble notification controls consistent. Touching the notification will always toggle hiding/unhiding the app. Close All is always available by expanding the notification.</change>
+        <change>CHANGE: Made the Peek notification controls consistent. Touching the notification will always toggle hiding/unhiding the app. Close All is always available by expanding the notification.</change>
         <change>BUG FIX: Notifications display dark icons on Android L and white icons on earlier Android versions.</change>
         <change>BUG FIX: Shadow image displays underneath bubble targets.</change>
         <change>BUG FIX: Stability fixes.</change>
@@ -306,7 +306,7 @@
 
     <release version="1.3.2" versioncode="13200">
         <change>CHANGE: Increase animation speed.</change>
-        <change>BUG FIX: Fix bug where expanded bubbles would display when Link Bubble was minimized.</change>
+        <change>BUG FIX: Fix bug where expanded bubbles would display when Peek was minimized.</change>
     </release>
 
     <release version="1.3.1" versioncode="13100">
@@ -316,33 +316,33 @@
 
     <release version="1.3.0" versioncode="13000">
         <change>NEW: Text content from a link can be displayed on Android Wear devices (requires Pro). Links can also be opened/closed on your device via Wear.</change>
-        <change>NEW: Link Bubble can now be 'hidden' via the notification. When hidden, the app will still be running, just no longer visible
+        <change>NEW: Peek can now be 'hidden' via the notification. When hidden, the app will still be running, just no longer visible
             (thus enabling background YouTube playback or similar).</change>
         <change>IMPROVEMENT: Much smoother animation when web content slides on/off screen.</change>
         <change>IMPROVEMENT: Restore slide-in animation when the first link begins to load.</change>
         <change>IMPROVEMENT: Add hack to stop Pocket from displaying when you add links to it.</change>
-        <change>IMPROVEMENT: Link Bubble is minimized when links are sent to external apps when running the L Preview.</change>
+        <change>IMPROVEMENT: Peek is minimized when links are sent to external apps when running the L Preview.</change>
         <change>IMPROVEMENT: Cookies are now enabled in Incognito Mode, but cleared at the end of the session.</change>
         <change>IMPROVEMENT: Changing the Incognito Mode setting forces open bubbles to be reloaded.</change>
         <change>CHANGE: Tabs from the previous session are no longer automatically restored. A prompt is now displayed requiring confirmation to restore these tabs.</change>
         <change>CHANGE: Periodically empty cached web data.</change>
         <change>CHANGE: The "Intercept links from" option has unfortunately been disabled for those running the L Preview due to the Android API required for this functionality being depreciated by Google.</change>
         <change>BUG FIX: "Intercept links from" works correctly for Android 4.4 and below.</change>
-        <change>BUG FIX: Fix rare issue where no tabs would display and pressing the device's Home button failed to close Link Bubble.</change>
+        <change>BUG FIX: Fix rare issue where no tabs would display and pressing the device's Home button failed to close Peek.</change>
         <change>BUG FIX: Fix issue where web content sometimes failed to slide on screen.</change>
         <change>BUG FIX: Fix issue where bubble favicon is not updated after the Pro trial has finished.</change>
         <change>BUG FIX: Fix issue where "Unable to launch 3rd party application" toast erroneously displayed.</change>
     </release>
 
     <release version="1.2.1" versioncode="12100">
-        <change>BUG FIX: Fix issue where Back button must be pressed after minimizing Link Bubble by dragging a bubble to the screen edge or on the Close tab target.</change>
+        <change>BUG FIX: Fix issue where Back button must be pressed after minimizing Peek by dragging a bubble to the screen edge or on the Close tab target.</change>
         <change>BUG FIX: Stability fixes.</change>
     </release>
 
     <release version="1.2.0" versioncode="12000">
         <change>NEW: "OK, Google" support (Requires Pro, Android 4.4 or later, must be enabled via Settings).</change>
         <change>NEW: Free version allows for a link to be loaded from any app (previously was restricted to a single app).</change>
-        <change>NEW: Granular controls to configure which apps Link Bubble will and won't intercept links from.</change>
+        <change>NEW: Granular controls to configure which apps Peek will and won't intercept links from.</change>
         <change>NEW: When closing a tab, an Undo prompt is displayed, allowing people to quickly restore that tab (configurable via Settings).</change>
         <change>NEW: Reading Mode (Beta), which extracts the main text from a link (Requires Pro).</change>
         <change>IMPROVEMENT: If a link was just loaded, prevent loading that link again for a short time period. Fixes multiple links loading in the event a link is clicked twice.</change>
@@ -357,7 +357,7 @@
 
     <release version="1.1.2" versioncode="11200">
         <change>NEW: Initial translations for Chinese (Taiwan), Danish, French, Hindi, Hungarian, Japanese, Polish, Portuguese, Portuguese (Brazil), Spanish, Spanish (Latin America), Swedish and Turkish.</change>
-        <change>NEW: URLs can be shared directly to Link Bubble via a 3rd party app's Share button.</change>
+        <change>NEW: URLs can be shared directly to Peek via a 3rd party app's Share button.</change>
         <change>IMPROVEMENT: Smoother animation when dragging a bubble.</change>
         <change>CHANGE: Clicking the Share button when reading a tab no longer automatically closes the current tab.</change>
         <change>BUG FIX: Links that should open in a new tab when clicked no longer require a long press.</change>
@@ -371,14 +371,14 @@
     </release>
 
     <release version="1.1.0" versioncode="11000">
-        <change>NEW: Add a 24 hour trial of Link Bubble Pro's features for all non-Pro users.</change>
+        <change>NEW: Add a 24 hour trial of Peek Pro's features for all non-Pro users.</change>
         <change>NEW: Translation support for Czech, Chinese (Simplified), Dutch, German, Italian, Russian and Thai. More languages to follow.</change>
         <change>NEW: Add option to change the User Agent.</change>
         <change>NEW: Add "Close bubble" option to overflow menu.</change>
         <change>NEW: Add "Stop" option to overflow menu when a webpage is loading.</change>
         <change>IMPROVEMENT: If the "Vibrate on touch" system setting is disabled, the app will not trigger any vibrations.</change>
         <change>IMPROVEMENT: Add a Close button on the upgrade/inform popup.</change>
-        <change>IMPROVEMENT: The FAQ's translation question now redirects to the community Link Bubble translation project.</change>
+        <change>IMPROVEMENT: The FAQ's translation question now redirects to the community Peek translation project.</change>
         <change>BUG FIX: Many stability fixes.</change>
     </release>
 
@@ -387,13 +387,13 @@
     </release>
 
     <release version="1.0.3" versioncode="10300">
-        <change>NEW: Add option to set Link Bubble as the default system browser (assuming it is not already).</change>
+        <change>NEW: Add option to set Peek as the default system browser (assuming it is not already).</change>
         <change>IMPROVEMENT: Include the title of a webpage when sharing URLs.</change>
         <change>IMPROVEMENT: Increase time period required before "Close all" functionality kicks in when hovering over the Close bubble.
             Should address people unintentionally closing all their open tabs.</change>
         <change>IMPROVEMENT: "Close all" long press text uses Sans Serif font.</change>
-        <change>IMPROVEMENT: Expand FAQ with entries about common questions such as how to close a tab quickly and why links may not be loading with Link Bubble.</change>
-        <change>IMPROVEMENT: Add shortcut to Link Bubble Beta to the FAQ.</change>
+        <change>IMPROVEMENT: Expand FAQ with entries about common questions such as how to close a tab quickly and why links may not be loading with Peek.</change>
+        <change>IMPROVEMENT: Add shortcut to Peek Beta to the FAQ.</change>
         <change>CHANGE: Move FAQ to front page of the Settings to improve its visibility.</change>
         <change>CHANGE: Add shortcut to view my other apps to the Settings.</change>
         <change>BUG FIX: Fix case where YouTube embeds were sometimes not found on a page.</change>
@@ -404,13 +404,13 @@
         <change>NEW: Clicking the version number in the settings displays the full change log.</change>
         <change>CHANGE: Add a new 'Auto expand' checkbox to the settings. Replaces the previous (and confusing) 'Auto content display' setting.</change>
         <change>CHANGE: By default, links no longer automatically expand when they have finished loading.</change>
-        <change>CHANGE: Free version no longer displays the notice about Link Bubble only handling links from a single app each time a link is
+        <change>CHANGE: Free version no longer displays the notice about Peek only handling links from a single app each time a link is
                 loaded from the non-designated app. This prompt now only displays very rarely.</change>
         <change>BUG FIX: Many stability fixes.</change>
     </release>
 
     <release version="1.0.1" versioncode="10101">
-        <change>Fix GPS usage for pages that request location (Note: Link Bubble itself never accesses your location).</change>
+        <change>Fix GPS usage for pages that request location (Note: Peek itself never accesses your location).</change>
     </release>
 
     <release version="1.0.0" versioncode="10100">

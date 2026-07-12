@@ -15,7 +15,7 @@
     <fragment
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:name="com.linkbubble.ui.SettingsHelpActivity$SettingsHelpFragment"
+        android:name="com.peek.browser.ui.SettingsHelpActivity$SettingsHelpFragment"
         android:id="@+id/fragment" />
 
 </LinearLayout>

@@ -88,7 +88,7 @@
             android:key="preference_webview_text_zoom2">
         </Preference>
 
-        <com.linkbubble.ui.ThemedListPreference
+        <com.peek.browser.ui.ThemedListPreference
             android:key="preference_user_agent"
             android:title="@string/preference_user_agent_title"
             android:entries="@array/preference_user_agent_options"

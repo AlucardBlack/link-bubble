@@ -19,7 +19,7 @@ for (int i = 0; i < project.gradle.startParameter.taskNames.size(); i++) {
 }
 
 android {
-    namespace 'com.linkbubble'
+    namespace 'com.peek.browser'
     compileSdk 35
     ndkVersion '28.2.13676358'
 
@@ -51,12 +51,12 @@ android {
     productFlavors {
         playstore {
             dimension "store"
-            applicationId='com.linkbubble.playstore'
+            applicationId='com.peek.browser.playstore'
 
             buildConfigField "String", "STORE_PACKAGE", "\"com.android.vending\""
             buildConfigField "String", "STORE_URL_PREFIX", "\"http://play.google.com/store/apps/details?id=\""
-            buildConfigField "String", "STORE_URL", "\"http://play.google.com/store/apps/details?id=com.linkbubble.playstore\""
-            buildConfigField "String", "STORE_MY_OTHER_APPS_URL", "\"https://play.google.com/store/apps/developer?id=Link+Bubble\""
+            buildConfigField "String", "STORE_URL", "\"http://play.google.com/store/apps/details?id=com.peek.browser.playstore\""
+            buildConfigField "String", "STORE_MY_OTHER_APPS_URL", "\"https://play.google.com/store/apps/developer?id=Peek\""
             buildConfigField "String", "TAP_PATH_PACKAGE_NAME", "\"com.digitalashes.tappath.playstore\""
         }
     }
@@ -64,10 +64,10 @@ android {
     signingConfigs {
         release {
             if(isRelease) {
-                storeFile file(System.getenv("LINK_BUBBLE_KEYSTORE_LOCATION"))
-                storePassword System.getenv("LINK_BUBBLE_KEYSTORE_PASSWORD")
-                keyAlias System.getenv("LINK_BUBBLE_KEY_ALIAS")
-                keyPassword System.getenv("LINK_BUBBLE_KEY_PASSWORD")
+                storeFile file(System.getenv("PEEK_KEYSTORE_LOCATION"))
+                storePassword System.getenv("PEEK_KEYSTORE_PASSWORD")
+                keyAlias System.getenv("PEEK_KEY_ALIAS")
+                keyPassword System.getenv("PEEK_KEY_PASSWORD")
             }
         }
     }

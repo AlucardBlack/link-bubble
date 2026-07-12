@@ -30,12 +30,12 @@
             android:layout_gravity="center"
             android:orientation="vertical">
 
-            <com.linkbubble.ui.FlipView
+            <com.peek.browser.ui.FlipView
                 xmlns:flipview="http://schemas.android.com/apk/res-auto"
                 android:id="@+id/stats_flip_view"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/stat_height"
-                android:src="@drawable/ic_launcher"
+                android:src="@mipmap/ic_launcher"
                 android:layout_gravity="center"
                 flipview:defaultView="@layout/view_stat_time_per_link"
                 flipview:flipView="@layout/view_stat_total_time"

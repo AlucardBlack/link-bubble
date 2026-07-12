@@ -11,8 +11,8 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.text.TextUtils
 import android.util.Log
-import com.linkbubble.R
-import com.linkbubble.util.NetworkConnectivity
+import com.peek.browser.R
+import com.peek.browser.util.NetworkConnectivity
 import org.mozilla.gecko.favicons.cache.FaviconCache
 import org.mozilla.gecko.util.NonEvictingLruCache
 import org.mozilla.gecko.util.ThreadUtils

@@ -3,7 +3,7 @@ project(linkbubble-adblock)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_library(LinkBubble SHARED
+add_library(Peek SHARED
     main.cpp
     ABPFilterParser.cpp
     cosmeticFilter.cpp
@@ -13,8 +13,8 @@ add_library(LinkBubble SHARED
     HashSet.cpp
 )
 
-target_include_directories(LinkBubble PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(Peek PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 find_library(log-lib log)
 
-target_link_libraries(LinkBubble ${log-lib})
+target_link_libraries(Peek ${log-lib})

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<com.linkbubble.ui.BubbleFlowDraggable
+<com.peek.browser.ui.BubbleFlowDraggable
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/bubble_flow"
     android:layout_width="fill_parent"

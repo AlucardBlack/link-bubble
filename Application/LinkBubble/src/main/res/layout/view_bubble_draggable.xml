@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<com.linkbubble.ui.BubbleDraggable
+<com.peek.browser.ui.BubbleDraggable
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -8,7 +8,7 @@
     android:layout_height="@dimen/bubble_size"
     >
 
-    <com.linkbubble.ui.BubblePlateView
+    <com.peek.browser.ui.BubblePlateView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/background"
@@ -17,13 +17,13 @@
         tools:ignore="ContentDescription"/>
 
     <!--
-    <com.linkbubble.ui.ProgressIndicator
+    <com.peek.browser.ui.ProgressIndicator
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:id="@+id/progressIndicator"
         android:layout_gravity="center"/>-->
 
-    <com.linkbubble.ui.ProgressIndicatorView
+    <com.peek.browser.ui.ProgressIndicatorView
         android:layout_width="@dimen/bubble_icon_size"
         android:layout_height="@dimen/bubble_icon_size"
         android:id="@+id/progressIndicator"
@@ -37,7 +37,7 @@
         android:src="@drawable/fallback_favicon"
         android:layout_gravity="center"/>
 
-    <com.linkbubble.ui.BadgeView
+    <com.peek.browser.ui.BadgeView
         android:id="@+id/badge_view"
         android:layout_width="@dimen/badge_size"
         android:layout_height="@dimen/badge_size"
@@ -50,4 +50,4 @@
         android:gravity="center"
         tools:ignore="HardcodedText"/>
 
-</com.linkbubble.ui.BubbleDraggable>
+</com.peek.browser.ui.BubbleDraggable>
