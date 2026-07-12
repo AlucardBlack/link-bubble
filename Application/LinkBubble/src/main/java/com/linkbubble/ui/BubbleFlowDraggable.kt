@@ -24,6 +24,7 @@ import com.linkbubble.physics.DraggableHelper
 import com.linkbubble.util.CrashTracking
 import com.linkbubble.util.EventBus
 import com.linkbubble.util.VerticalGestureListener
+import com.linkbubble.webrender.WebViewPreloader
 import java.net.MalformedURLException
 
 class BubbleFlowDraggable @JvmOverloads constructor(
@@ -336,6 +337,9 @@ class BubbleFlowDraggable @JvmOverloads constructor(
         }
 
         saveCurrentTabs()
+
+        // Warm the next tab's WebView while the main thread is idle.
+        WebViewPreloader.preload(context)
 
         return tabView
     }

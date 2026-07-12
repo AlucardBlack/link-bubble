@@ -44,6 +44,7 @@ import com.linkbubble.util.AppPoller
 import com.linkbubble.util.CrashTracking
 import com.linkbubble.util.EventBus
 import com.linkbubble.util.Util
+import com.linkbubble.webrender.WebViewPreloader
 import java.net.MalformedURLException
 import java.net.URL
 import java.util.Timer
@@ -300,6 +301,9 @@ class MainController private constructor(context: Context, eventHandler: EventHa
         mBubbleDraggable.setBubbleFlowDraggable(mBubbleFlowDraggable)
 
         updateIncognitoMode(Settings.get().isIncognitoMode)
+
+        // Warm the first tab's WebView while the main thread is idle.
+        WebViewPreloader.preload(mContext)
     }
 
     /*
@@ -1295,6 +1299,8 @@ class MainController private constructor(context: Context, eventHandler: EventHa
             instance.mBubbleDraggable.destroy()
             instance.mBubbleFlowDraggable.destroy()
             instance.mCanvasView.destroy()
+            // The warm WebView references the service context — don't let it outlive us.
+            WebViewPreloader.shutdown()
             instance.mChoreographer.removeFrameCallback(instance)
             instance.endAppPolling()
             sInstance = null

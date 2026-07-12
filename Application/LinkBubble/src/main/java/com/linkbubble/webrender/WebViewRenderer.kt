@@ -493,7 +493,7 @@ class WebViewRenderer(context: Context, controller: Controller, webRendererPlace
         mHandler = Handler()
         TAG = tag
 
-        mWebView = CustomWebView(mContext)
+        mWebView = WebViewPreloader.obtain(context) ?: CustomWebView(mContext)
         mWebView.layoutParams = webRendererPlaceholder.layoutParams
         Util.replaceViewAtPosition(webRendererPlaceholder, mWebView)
 
