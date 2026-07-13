@@ -9,8 +9,8 @@ import android.content.Context
 import android.content.DialogInterface
 import android.os.Build
 import android.os.Bundle
-import android.preference.CheckBoxPreference
-import android.preference.Preference
+import androidx.preference.CheckBoxPreference
+import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import android.view.MenuItem
 import android.widget.Toast
@@ -30,7 +30,7 @@ import java.util.Locale
  * This class exists solely because Android's PreferenceScreen implementation doesn't do anything
  * when the Up button is touched, and we need to go back in that case given our use of the Up button.
  */
-class SettingsMoreActivity : AppCompatPreferenceActivity() {
+class SettingsMoreActivity : AppCompatActivity() {
 
     class AdBlockTurnOnEvent
 
@@ -67,28 +67,26 @@ class SettingsMoreActivity : AppCompatPreferenceActivity() {
 
     class SettingsMoreFragment : SettingsBaseFragment() {
 
-        override fun onCreate(savedInstanceState: Bundle?) {
-            super.onCreate(savedInstanceState)
+        override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
+            setPreferencesFromResource(R.xml.preferences_more, rootKey)
 
-            addPreferencesFromResource(R.xml.preferences_more)
-
-            val articleModeWearPreference = findPreference(Settings.KEY_ARTICLE_MODE_ON_WEAR_PREFERENCE) as CheckBoxPreference
+            val articleModeWearPreference = findPreference<CheckBoxPreference>(Settings.KEY_ARTICLE_MODE_ON_WEAR_PREFERENCE)!!
             articleModeWearPreference.setOnPreferenceChangeListener { preference, newValue ->
-                if (MainController.get() != null && MainController.get()!!.reloadAllTabs(activity)) {
-                    Toast.makeText(activity, R.string.article_mode_changed_reloading_current, Toast.LENGTH_SHORT).show()
+                if (MainController.get() != null && MainController.get()!!.reloadAllTabs(requireActivity())) {
+                    Toast.makeText(requireActivity(), R.string.article_mode_changed_reloading_current, Toast.LENGTH_SHORT).show()
                 }
                 true
             }
 
-            val articleModePreference = findPreference(Settings.KEY_ARTICLE_MODE_PREFERENCE) as CheckBoxPreference
+            val articleModePreference = findPreference<CheckBoxPreference>(Settings.KEY_ARTICLE_MODE_PREFERENCE)!!
             articleModePreference.setOnPreferenceChangeListener { preference, newValue ->
-                if (MainController.get() != null && MainController.get()!!.reloadAllTabs(activity)) {
-                    Toast.makeText(activity, R.string.article_mode_changed_reloading_current, Toast.LENGTH_SHORT).show()
+                if (MainController.get() != null && MainController.get()!!.reloadAllTabs(requireActivity())) {
+                    Toast.makeText(requireActivity(), R.string.article_mode_changed_reloading_current, Toast.LENGTH_SHORT).show()
                 }
                 true
             }
 
-            val adBlockPreference = findPreference(Settings.PREFERENCE_ADBLOCK_MODE) as CheckBoxPreference
+            val adBlockPreference = findPreference<CheckBoxPreference>(Settings.PREFERENCE_ADBLOCK_MODE)!!
             adBlockPreference.setOnPreferenceChangeListener { preference, newValue ->
                 if (newValue as Boolean) {
                     EventBus.post(AdBlockTurnOnEvent())
@@ -97,10 +95,10 @@ class SettingsMoreActivity : AppCompatPreferenceActivity() {
                 true
             }
 
-            val interceptLinksFromPreference = findPreference(Settings.PREFERENCE_IGNORE_LINKS_FROM)
+            val interceptLinksFromPreference = findPreference<androidx.preference.Preference>(Settings.PREFERENCE_IGNORE_LINKS_FROM)!!
             if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT) {
                 interceptLinksFromPreference.setOnPreferenceClickListener {
-                    getDontInterceptLinksFromDialog(activity).show()
+                    getDontInterceptLinksFromDialog(requireActivity()).show()
                     true
                 }
             } else {
@@ -136,7 +134,7 @@ class SettingsMoreActivity : AppCompatPreferenceActivity() {
 
             val builder = AlertDialog.Builder(context)
             builder.setView(layout)
-            builder.setIcon(Util.getAlertIcon(activity))
+            builder.setIcon(Util.getAlertIcon(requireActivity()))
             builder.setPositiveButton(android.R.string.ok, DialogInterface.OnClickListener { dialog, which ->
 
                 val ignorePackageNames = ArrayList<String>()

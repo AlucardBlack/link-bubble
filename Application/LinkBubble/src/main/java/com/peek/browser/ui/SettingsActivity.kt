@@ -11,16 +11,18 @@ import android.content.DialogInterface
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
-import android.content.pm.ResolveInfo
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
-import android.preference.ListPreference
-import android.preference.Preference
-import android.preference.PreferenceCategory
-import android.preference.SwitchPreference
+import androidx.preference.ListPreference
+import androidx.preference.Preference
+import androidx.preference.PreferenceCategory
+import androidx.preference.PreferenceManager
+import androidx.preference.SwitchPreferenceCompat
 import androidx.annotation.DrawableRes
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.appcompat.widget.Toolbar
 import android.view.LayoutInflater
@@ -32,7 +34,6 @@ import android.webkit.CookieManager
 import android.webkit.WebView
 import android.webkit.WebViewDatabase
 import android.widget.ArrayAdapter
-import android.widget.CompoundButton
 import android.widget.ImageView
 import android.widget.ListView
 import android.widget.RadioButton
@@ -53,7 +54,7 @@ import com.peek.browser.util.IconCache
 import com.peek.browser.util.Util
 import java.util.ArrayList
 
-class SettingsActivity : AppCompatPreferenceActivity() {
+class SettingsActivity : AppCompatActivity() {
 
     class IncognitoModeChangedEvent(@JvmField val mIncognito: Boolean, @JvmField val mainController: MainController?)
 
@@ -77,10 +78,6 @@ class SettingsActivity : AppCompatPreferenceActivity() {
         }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-    }
-
     override fun onStart() {
         super.onStart()
         MainApplication.checkRestoreCurrentTabs(this)
@@ -93,7 +90,7 @@ class SettingsActivity : AppCompatPreferenceActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
 
-        if (super.onOptionsItemSelected(item) == true) {
+        if (super.onOptionsItemSelected(item)) {
             return true
         }
 
@@ -117,24 +114,19 @@ class SettingsActivity : AppCompatPreferenceActivity() {
         private val mHandler = Handler()
 
         fun getTintedDrawable(@DrawableRes drawable: Int, color: Int): Drawable {
-            var d = resources.getDrawable(drawable)
+            var d = ResourcesCompat.getDrawable(resources, drawable, null)!!
             d = DrawableCompat.wrap(d)
             DrawableCompat.setTint(d, color)
             return d
         }
 
-        override fun onCreate(savedInstanceState: Bundle?) {
-            super.onCreate(savedInstanceState)
-
-            val tintColor = resources.getColor(R.color.color_primary)
+        override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
+            val tintColor = ResourcesCompat.getColor(resources, R.color.color_primary, null)
 
             // Load the preferences from an XML resource
-            addPreferencesFromResource(R.xml.preferences)
+            setPreferencesFromResource(R.xml.preferences, rootKey)
 
-            val generalCategory = findPreference("preference_category_general") as PreferenceCategory
-            val configurationCategory = findPreference("preference_category_configuration") as PreferenceCategory
-
-            mWebViewBatterySavePreference = findPreference(Settings.PREFERENCE_WEBVIEW_BATTERY_SAVING_MODE)
+            mWebViewBatterySavePreference = findPreference<Preference>(Settings.PREFERENCE_WEBVIEW_BATTERY_SAVING_MODE)!!
             mWebViewBatterySavePreference.setOnPreferenceClickListener {
                 Util.showThemedDialog(getWebViewBatterySaveDialog())
                 true
@@ -142,21 +134,21 @@ class SettingsActivity : AppCompatPreferenceActivity() {
             mWebViewBatterySavePreference.icon = getTintedDrawable(R.drawable.ic_battery_full_white_36dp, tintColor)
             updateWebViewBatterySaveSummary()
 
-            val domainsPref = findPreference("preference_domains")
+            val domainsPref = findPreference<Preference>("preference_domains")!!
             domainsPref.icon = getTintedDrawable(R.drawable.ic_open_in_browser_white_36dp, tintColor)
             domainsPref.setOnPreferenceClickListener {
-                startActivity(Intent(activity, SettingsDomainsActivity::class.java))
+                startActivity(Intent(requireActivity(), SettingsDomainsActivity::class.java))
                 true
             }
 
-            val incognitoButton = findPreference(Settings.PREFERENCE_INCOGNITO_MODE)
+            val incognitoButton = findPreference<Preference>(Settings.PREFERENCE_INCOGNITO_MODE)
             if (incognitoButton != null) {
                 incognitoButton.setOnPreferenceChangeListener { preference, newValue ->
 
                     EventBus.post(IncognitoModeChangedEvent(newValue as Boolean, MainController.get()))
 
-                    if (MainController.get() != null && MainController.get()!!.reloadAllTabs(activity)) {
-                        Toast.makeText(activity, R.string.incognito_mode_changed_reloading_current, Toast.LENGTH_SHORT).show()
+                    if (MainController.get() != null && MainController.get()!!.reloadAllTabs(requireActivity())) {
+                        Toast.makeText(requireActivity(), R.string.incognito_mode_changed_reloading_current, Toast.LENGTH_SHORT).show()
                     }
 
                     true
@@ -164,7 +156,7 @@ class SettingsActivity : AppCompatPreferenceActivity() {
             }
             incognitoButton!!.icon = getTintedDrawable(R.drawable.ic_person_outline_white_36dp, tintColor)
 
-            mThemePreference = findPreference("preference_theme")
+            mThemePreference = findPreference<Preference>("preference_theme")!!
             mThemePreference.icon = getTintedDrawable(R.drawable.ic_color_lens_white_36dp, tintColor)
             mThemePreference.setOnPreferenceClickListener {
                 Util.showThemedDialog(getThemeDialog())
@@ -172,26 +164,26 @@ class SettingsActivity : AppCompatPreferenceActivity() {
             }
             updateThemeSummary()
 
-            val themeToolbarPreference = findPreference(Settings.PREFERENCE_THEME_TOOLBAR) as SwitchPreference
+            val themeToolbarPreference = findPreference<SwitchPreferenceCompat>(Settings.PREFERENCE_THEME_TOOLBAR)!!
             themeToolbarPreference.isChecked = Settings.get().getThemeToolbar()
             themeToolbarPreference.icon = getTintedDrawable(R.drawable.ic_colorize_white_36dp, tintColor)
             themeToolbarPreference.setOnPreferenceChangeListener { preference, newValue ->
-                if (MainController.get() != null && MainController.get()!!.reloadAllTabs(activity)) {
-                    Toast.makeText(activity, R.string.theme_toolbar_reloading_current, Toast.LENGTH_SHORT).show()
+                if (MainController.get() != null && MainController.get()!!.reloadAllTabs(requireActivity())) {
+                    Toast.makeText(requireActivity(), R.string.theme_toolbar_reloading_current, Toast.LENGTH_SHORT).show()
                 }
                 true
             }
 
-            val crashButton = findPreference("debug_crash")
+            val crashButton = findPreference<Preference>("debug_crash")
             if (crashButton != null) {
                 crashButton.setOnPreferenceClickListener {
                     throw RuntimeException("CRASH BUTTON PRESSED!")
                 }
             }
 
-            val leftConsumeBubblePreference = findPreference(Settings.PREFERENCE_LEFT_CONSUME_BUBBLE)
+            val leftConsumeBubblePreference = findPreference<Preference>(Settings.PREFERENCE_LEFT_CONSUME_BUBBLE)!!
             leftConsumeBubblePreference.setOnPreferenceClickListener {
-                val alertDialog = ActionItem.getConfigureBubbleAlert(activity, object : ActionItem.OnActionItemSelectedListener {
+                val alertDialog = ActionItem.getConfigureBubbleAlert(requireActivity(), object : ActionItem.OnActionItemSelectedListener {
                     override fun onSelected(actionItem: ActionItem) {
                         Settings.get().setConsumeBubble(Constant.BubbleAction.ConsumeLeft, actionItem.mType, actionItem.getLabel(),
                                 actionItem.mPackageName, actionItem.mActivityClassName)
@@ -203,9 +195,9 @@ class SettingsActivity : AppCompatPreferenceActivity() {
             }
             updateConsumeBubblePreference(leftConsumeBubblePreference, Constant.BubbleAction.ConsumeLeft)
 
-            val rightConsumeBubblePreference = findPreference(Settings.PREFERENCE_RIGHT_CONSUME_BUBBLE)
+            val rightConsumeBubblePreference = findPreference<Preference>(Settings.PREFERENCE_RIGHT_CONSUME_BUBBLE)!!
             rightConsumeBubblePreference.setOnPreferenceClickListener {
-                val alertDialog = ActionItem.getConfigureBubbleAlert(activity, object : ActionItem.OnActionItemSelectedListener {
+                val alertDialog = ActionItem.getConfigureBubbleAlert(requireActivity(), object : ActionItem.OnActionItemSelectedListener {
                     override fun onSelected(actionItem: ActionItem) {
                         Settings.get().setConsumeBubble(Constant.BubbleAction.ConsumeRight, actionItem.mType, actionItem.getLabel(),
                                 actionItem.mPackageName, actionItem.mActivityClassName)
@@ -217,33 +209,13 @@ class SettingsActivity : AppCompatPreferenceActivity() {
             }
             updateConsumeBubblePreference(rightConsumeBubblePreference, Constant.BubbleAction.ConsumeRight)
 
-            /*
-            final Preference linkDoubleTapPreference = findPreference(Settings.PREFERENCE_LINK_DOUBLE_TAP);
-            linkDoubleTapPreference.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-                @Override
-                public boolean onPreferenceClick(Preference preference) {
-                    AlertDialog alertDialog = ActionItem.getConfigureBubbleAlert(getActivity(), new ActionItem.OnActionItemSelectedListener() {
-                        @Override
-                        public void onSelected(ActionItem actionItem) {
-                            Settings.get().setConsumeBubble(Constant.BubbleAction.LinkDoubleTap, actionItem.mType, actionItem.getLabel(),
-                                    actionItem.mPackageName, actionItem.mActivityClassName);
-                            linkDoubleTapPreference.setSummary(Settings.get().getConsumeBubbleLabel(Constant.BubbleAction.LinkDoubleTap));
-                        }
-                    });
-                    alertDialog.show();
-                    return true;
-                }
-            });
-            linkDoubleTapPreference.setSummary(Settings.get().getConsumeBubbleLabel(Constant.BubbleAction.LinkDoubleTap));
-            */
-
-            val clearCachePref = findPreference("preference_clear_browser_cache")
+            val clearCachePref = findPreference<Preference>("preference_clear_browser_cache")!!
             clearCachePref.setOnPreferenceClickListener {
                 onClearBrowserCachePreferenceClick()
             }
             clearCachePref.icon = getTintedDrawable(R.drawable.ic_delete_white_36dp, tintColor)
 
-            mWebViewTextZoomPreference = findPreference(Settings.PREFERENCE_WEBVIEW_TEXT_ZOOM)
+            mWebViewTextZoomPreference = findPreference<Preference>(Settings.PREFERENCE_WEBVIEW_TEXT_ZOOM)!!
             mWebViewTextZoomPreference.setOnPreferenceClickListener {
                 Util.showThemedDialog(getTextZoomDialog())
                 true
@@ -251,12 +223,12 @@ class SettingsActivity : AppCompatPreferenceActivity() {
             mWebViewTextZoomPreference.icon = getTintedDrawable(R.drawable.ic_pageview_white_36dp, tintColor)
             mWebViewTextZoomPreference.summary = Settings.get().getWebViewTextZoom().toString() + "%"
 
-            mUserAgentPreference = findPreference(Settings.PREFERENCE_USER_AGENT) as ListPreference
+            mUserAgentPreference = findPreference<ListPreference>(Settings.PREFERENCE_USER_AGENT)!!
             mUserAgentPreference.icon = getTintedDrawable(R.drawable.ic_web_white_36dp, tintColor)
 
-            val otherAppsPreference = findPreference("preference_my_other_apps")
+            val otherAppsPreference = findPreference<Preference>("preference_my_other_apps")!!
             otherAppsPreference.setOnPreferenceClickListener {
-                val intent = MainApplication.getStoreIntent(activity, BuildConfig.STORE_MY_OTHER_APPS_URL)
+                val intent = MainApplication.getStoreIntent(requireActivity(), BuildConfig.STORE_MY_OTHER_APPS_URL)
                 if (intent != null) {
                     startActivity(intent)
                     true
@@ -266,44 +238,42 @@ class SettingsActivity : AppCompatPreferenceActivity() {
             }
             otherAppsPreference.icon = getTintedDrawable(R.drawable.ic_shop_two_white_36dp, tintColor)
 
-            val faqPref = findPreference("preference_faq")
+            val faqPref = findPreference<Preference>("preference_faq")!!
             faqPref.setOnPreferenceClickListener {
-                val dialog = FAQDialog(activity)
+                val dialog = FAQDialog(requireActivity())
                 dialog.show()
                 true
             }
             faqPref.icon = getTintedDrawable(R.drawable.ic_question_answer_white_36dp, tintColor)
 
-            findPreference("preference_default_apps").setOnPreferenceClickListener {
-                startActivity(Intent(activity, SettingsDefaultAppsActivity::class.java))
+            findPreference<Preference>("preference_default_apps")!!.setOnPreferenceClickListener {
+                startActivity(Intent(requireActivity(), SettingsDefaultAppsActivity::class.java))
                 true
             }
 
-            val morePref = findPreference("preference_more")
+            val morePref = findPreference<Preference>("preference_more")!!
             morePref.setOnPreferenceClickListener {
-                startActivity(Intent(activity, SettingsMoreActivity::class.java))
+                startActivity(Intent(requireActivity(), SettingsMoreActivity::class.java))
                 true
             }
             morePref.icon = getTintedDrawable(R.drawable.ic_more_horiz_white_36dp, tintColor)
 
-            val helpPref = findPreference("preference_help")
+            val helpPref = findPreference<Preference>("preference_help")!!
             helpPref.setOnPreferenceClickListener {
-                startActivity(Intent(activity, SettingsHelpActivity::class.java))
+                startActivity(Intent(requireActivity(), SettingsHelpActivity::class.java))
                 true
             }
             helpPref.icon = getTintedDrawable(R.drawable.ic_help_white_36dp, tintColor)
 
-            val versionPreference = findPreference("preference_version")
+            val versionPreference = findPreference<Preference>("preference_version")!!
             try {
-                val packageInfo = activity.packageManager.getPackageInfo(activity.packageName, 0)
+                val packageInfo = requireActivity().packageManager.getPackageInfo(requireActivity().packageName, 0)
                 versionPreference.title = getString(R.string.preference_version_title) + " " + packageInfo.versionName
             } catch (e: PackageManager.NameNotFoundException) {
             }
             versionPreference.setOnPreferenceClickListener {
-                val changelogDialog = ChangeLogDialog(activity)
+                val changelogDialog = ChangeLogDialog(requireActivity())
                 changelogDialog.show()
-                //FAQDialog faqDialog = new FAQDialog(SettingsActivity.this);
-                //faqDialog.show();
                 true
             }
             versionPreference.icon = getTintedDrawable(R.drawable.ic_info_white_36dp, tintColor)
@@ -312,15 +282,15 @@ class SettingsActivity : AppCompatPreferenceActivity() {
         override fun onResume() {
             super.onResume()
 
-            preferenceScreen.sharedPreferences.registerOnSharedPreferenceChangeListener(this)
+            PreferenceManager.getDefaultSharedPreferences(requireContext()).registerOnSharedPreferenceChangeListener(this)
 
             if (mUserAgentPreference.entry == null) {
                 mUserAgentPreference.setValueIndex(0)
             }
             mUserAgentPreference.summary = mUserAgentPreference.entry
 
-            val defaultAppsPreference = findPreference(Settings.PREFERENCE_DEFAULT_APPS)
-            setPreferenceIcon(defaultAppsPreference, Settings.get().getDefaultBrowserIcon(activity))
+            val defaultAppsPreference = findPreference<Preference>(Settings.PREFERENCE_DEFAULT_APPS)!!
+            setPreferenceIcon(defaultAppsPreference, Settings.get().getDefaultBrowserIcon(requireActivity()))
 
             checkDefaultBrowser()
         }
@@ -328,21 +298,18 @@ class SettingsActivity : AppCompatPreferenceActivity() {
         override fun onPause() {
             super.onPause()
 
-            preferenceScreen.sharedPreferences.unregisterOnSharedPreferenceChangeListener(this)
-        }
-
-        override fun onDestroy() {
-            super.onDestroy()
+            PreferenceManager.getDefaultSharedPreferences(requireContext()).unregisterOnSharedPreferenceChangeListener(this)
         }
 
         override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String?) {
-            val preference = findPreference(key)
+            key ?: return
+            val preference = findPreference<Preference>(key)
 
             if (preference is ListPreference) {
                 preference.summary = preference.entry
                 if (preference === mUserAgentPreference) {
-                    if (MainController.get() != null && MainController.get()!!.reloadAllTabs(activity)) {
-                        Toast.makeText(activity, R.string.user_agent_changed_reloading_current, Toast.LENGTH_SHORT).show()
+                    if (MainController.get() != null && MainController.get()!!.reloadAllTabs(requireActivity())) {
+                        Toast.makeText(requireActivity(), R.string.user_agent_changed_reloading_current, Toast.LENGTH_SHORT).show()
                     }
                 }
             }
@@ -350,31 +317,29 @@ class SettingsActivity : AppCompatPreferenceActivity() {
 
         fun checkDefaultBrowser() {
 
-            val packageManager = activity.packageManager
+            val packageManager = requireActivity().packageManager
 
-            val setDefaultBrowserPreference = findPreference("preference_set_default_browser")
+            val setDefaultBrowserPreference = findPreference<Preference>("preference_set_default_browser")
             // Will be null if onResume() is called after the preference has already been removed.
             if (setDefaultBrowserPreference != null) {
-                //PreferenceCategory category = (PreferenceCategory) findPreference("preference_category_configuration");
-                //category.removePreference(setDefaultBrowserPreference);
                 setDefaultBrowserPreference.setOnPreferenceClickListener {
                     // Via http://stackoverflow.com/a/13239706/328679
-                    val packageManager2 = activity.packageManager
+                    val packageManager2 = requireActivity().packageManager
 
-                    val dummyComponentName = ComponentName(activity.application,
+                    val dummyComponentName = ComponentName(requireActivity().application,
                             DefaultBrowserResetActivity::class.java)
                     packageManager2.setComponentEnabledSetting(dummyComponentName, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP)
 
                     val intent = Intent(Intent.ACTION_VIEW)
                     intent.data = Uri.parse(Config.SET_DEFAULT_BROWSER_URL)
                     intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-                    activity.startActivity(intent)
+                    requireActivity().startActivity(intent)
 
                     packageManager2.setComponentEnabledSetting(dummyComponentName, PackageManager.COMPONENT_ENABLED_STATE_DEFAULT, PackageManager.DONT_KILL_APP)
                     true
                 }
                 setDefaultBrowserPreference.icon = getTintedDrawable(R.drawable.ic_warning_white_36dp,
-                        resources.getColor(android.R.color.holo_orange_light))
+                        ResourcesCompat.getColor(resources, android.R.color.holo_orange_light, null))
 
                 val defaultBrowserResolveInfo = Util.getDefaultBrowser(packageManager)
                 if (defaultBrowserResolveInfo != null) {
@@ -382,7 +347,7 @@ class SettingsActivity : AppCompatPreferenceActivity() {
                     if (defaultBrowserPackageName != null
                             && (defaultBrowserPackageName == BuildConfig.APPLICATION_ID
                                     || defaultBrowserPackageName == BuildConfig.TAP_PATH_PACKAGE_NAME)) {
-                        val category = findPreference("preference_category_configuration") as PreferenceCategory
+                        val category = findPreference<PreferenceCategory>("preference_category_configuration")!!
                         category.removePreference(setDefaultBrowserPreference)
                     }
                 }
@@ -395,18 +360,14 @@ class SettingsActivity : AppCompatPreferenceActivity() {
             if (darkTheme) {
                 if (color) {
                     mThemePreference.setSummary(R.string.preference_theme_dark_color)
-                    //setPreferenceIcon(mThemePreference, R.drawable.preference_theme_dark_color);
                 } else {
                     mThemePreference.setSummary(R.string.preference_theme_dark_no_color)
-                    //setPreferenceIcon(mThemePreference, R.drawable.preference_theme_dark_no_color);
                 }
             } else {
                 if (color) {
                     mThemePreference.setSummary(R.string.preference_theme_light_color)
-                    //setPreferenceIcon(mThemePreference, R.drawable.preference_theme_light_color);
                 } else {
                     mThemePreference.setSummary(R.string.preference_theme_light_no_color)
-                    //setPreferenceIcon(mThemePreference, R.drawable.preference_theme_light_no_color);
                 }
             }
         }
@@ -427,17 +388,17 @@ class SettingsActivity : AppCompatPreferenceActivity() {
             val color = Settings.get().getColoredProgressIndicator()
             val startSelectedIndex = if (darkTheme) (if (color) THEME_DARK_COLOR else 3) else (if (color) THEME_LIGHT_COLOR else THEME_LIGHT_NO_COLOR)
 
-            val adapter = PreferenceThemeAdapter(activity,
+            val adapter = PreferenceThemeAdapter(requireActivity(),
                     R.layout.view_preference_theme_item,
                     startSelectedIndex,
                     items.toTypedArray())
 
-            val listView = ListView(activity)
+            val listView = ListView(requireActivity())
             listView.adapter = adapter
 
-            val builder = AlertDialog.Builder(activity)
+            val builder = AlertDialog.Builder(requireActivity())
             builder.setView(listView)
-            builder.setIcon(Util.getAlertIcon(activity))
+            builder.setIcon(Util.getAlertIcon(requireActivity()))
             builder.setPositiveButton(R.string.action_ok, DialogInterface.OnClickListener { dialog, which ->
                 if (adapter.mSelectedIndex != startSelectedIndex) {
                     when (adapter.mSelectedIndex) {
@@ -462,7 +423,7 @@ class SettingsActivity : AppCompatPreferenceActivity() {
                     updateThemeSummary()
 
                     if (MainController.get() != null) {
-                        EventBus.post(MainService.ReloadMainServiceEvent(activity))
+                        EventBus.post(MainService.ReloadMainServiceEvent(requireActivity()))
                     }
                 }
             })
@@ -492,19 +453,19 @@ class SettingsActivity : AppCompatPreferenceActivity() {
                 when (position) {
                     THEME_LIGHT_COLOR -> {
                         label.text = mContext.getString(R.string.preference_theme_light_color)
-                        icon.setImageDrawable(mContext.resources.getDrawable(R.drawable.preference_theme_light_color))
+                        icon.setImageDrawable(ResourcesCompat.getDrawable(mContext.resources, R.drawable.preference_theme_light_color, null))
                     }
                     THEME_LIGHT_NO_COLOR -> {
                         label.text = mContext.getString(R.string.preference_theme_light_no_color)
-                        icon.setImageDrawable(mContext.resources.getDrawable(R.drawable.preference_theme_light_no_color))
+                        icon.setImageDrawable(ResourcesCompat.getDrawable(mContext.resources, R.drawable.preference_theme_light_no_color, null))
                     }
                     THEME_DARK_COLOR -> {
                         label.text = mContext.getString(R.string.preference_theme_dark_color)
-                        icon.setImageDrawable(mContext.resources.getDrawable(R.drawable.preference_theme_dark_color))
+                        icon.setImageDrawable(ResourcesCompat.getDrawable(mContext.resources, R.drawable.preference_theme_dark_color, null))
                     }
                     THEME_DARK_NO_COLOR -> {
                         label.text = mContext.getString(R.string.preference_theme_dark_no_color)
-                        icon.setImageDrawable(mContext.resources.getDrawable(R.drawable.preference_theme_dark_no_color))
+                        icon.setImageDrawable(ResourcesCompat.getDrawable(mContext.resources, R.drawable.preference_theme_dark_no_color, null))
                     }
                     else -> {
                     }
@@ -517,7 +478,6 @@ class SettingsActivity : AppCompatPreferenceActivity() {
                 }
                 convertView.setOnTouchListener { v, event ->
                     when (event.action) {
-                        // Pass event along to radio button so UI visually updates
                         MotionEvent.ACTION_DOWN, MotionEvent.ACTION_UP -> {
                             radioButton.onTouchEvent(event)
                             true
@@ -554,17 +514,17 @@ class SettingsActivity : AppCompatPreferenceActivity() {
             items.add(getString(R.string.preference_webview_battery_save_default_title))
             items.add(getString(R.string.preference_webview_battery_save_off_title))
 
-            val adapter = PreferenceBatterySaveAdapter(activity,
+            val adapter = PreferenceBatterySaveAdapter(requireActivity(),
                     R.layout.view_preference_webview_battery_save_item,
                     Settings.get().getWebViewBatterySaveMode()!!.ordinal,
                     items.toTypedArray())
 
-            val listView = ListView(activity)
+            val listView = ListView(requireActivity())
             listView.adapter = adapter
 
-            val builder = AlertDialog.Builder(activity)
+            val builder = AlertDialog.Builder(requireActivity())
             builder.setView(listView)
-            builder.setIcon(Util.getAlertIcon(activity))
+            builder.setIcon(Util.getAlertIcon(requireActivity()))
             builder.setPositiveButton(R.string.action_ok, DialogInterface.OnClickListener { dialog, which ->
                 val mode = Settings.WebViewBatterySaveMode.values()[adapter.mSelectedIndex]
                 Settings.get().setWebViewBatterySaveMode(mode)
@@ -611,7 +571,6 @@ class SettingsActivity : AppCompatPreferenceActivity() {
                 }
                 convertView.setOnTouchListener { v, event ->
                     when (event.action) {
-                        // Pass event along to radio button so UI visually updates
                         MotionEvent.ACTION_DOWN, MotionEvent.ACTION_UP -> {
                             radioButton.onTouchEvent(event)
                             true
@@ -632,7 +591,7 @@ class SettingsActivity : AppCompatPreferenceActivity() {
         }
 
         fun getTextZoomDialog(): AlertDialog {
-            val layout = View.inflate(activity, R.layout.view_preference_text_zoom, null)
+            val layout = View.inflate(requireActivity(), R.layout.view_preference_text_zoom, null)
 
             val initialZoom = Settings.get().getWebViewTextZoom()
             val textView = layout.findViewById<TextView>(R.id.seekbar_title)
@@ -663,8 +622,8 @@ class SettingsActivity : AppCompatPreferenceActivity() {
             seekBar.max = Settings.PREFERENCE_WEBVIEW_TEXT_ZOOM_MAX - Settings.PREFERENCE_WEBVIEW_TEXT_ZOOM_MIN
             seekBar.progress = initialZoom - Settings.PREFERENCE_WEBVIEW_TEXT_ZOOM_MIN
 
-            val builder = AlertDialog.Builder(activity)
-            builder.setIcon(Util.getAlertIcon(activity))
+            val builder = AlertDialog.Builder(requireActivity())
+            builder.setIcon(Util.getAlertIcon(requireActivity()))
             builder.setView(layout)
             builder.setTitle(R.string.preference_webview_text_zoom_title)
 
@@ -675,8 +634,8 @@ class SettingsActivity : AppCompatPreferenceActivity() {
                 val currentZoom = Settings.get().getWebViewTextZoom()
                 mWebViewTextZoomPreference.summary = "$currentZoom%"
                 if (currentZoom != initialZoom && MainController.get() != null) {
-                    if (MainController.get()!!.reloadAllTabs(activity)) {
-                        Toast.makeText(activity, R.string.preference_webview_text_zoom_reloading_current, Toast.LENGTH_SHORT).show()
+                    if (MainController.get()!!.reloadAllTabs(requireActivity())) {
+                        Toast.makeText(requireActivity(), R.string.preference_webview_text_zoom_reloading_current, Toast.LENGTH_SHORT).show()
                     }
                 }
             })
@@ -686,8 +645,8 @@ class SettingsActivity : AppCompatPreferenceActivity() {
                 val currentZoom = Settings.get().getWebViewTextZoom()
                 mWebViewTextZoomPreference.summary = "$currentZoom%"
                 if (currentZoom != initialZoom && MainController.get() != null) {
-                    if (MainController.get()!!.reloadAllTabs(activity)) {
-                        Toast.makeText(activity, R.string.preference_webview_text_zoom_reloading_current, Toast.LENGTH_SHORT).show()
+                    if (MainController.get()!!.reloadAllTabs(requireActivity())) {
+                        Toast.makeText(requireActivity(), R.string.preference_webview_text_zoom_reloading_current, Toast.LENGTH_SHORT).show()
                     }
                 }
             })
@@ -712,22 +671,22 @@ class SettingsActivity : AppCompatPreferenceActivity() {
             items.add(clearHistory)
             items.add(clearPasswords)
 
-            val listAdapter = ArrayAdapter<String>(activity, android.R.layout.simple_list_item_multiple_choice, items)
+            val listAdapter = ArrayAdapter<String>(requireActivity(), android.R.layout.simple_list_item_multiple_choice, items)
 
-            val listView = ListView(activity)
+            val listView = ListView(requireActivity())
             listView.choiceMode = ListView.CHOICE_MODE_MULTIPLE
             listView.adapter = listAdapter
             for (i in items.indices) {
                 listView.setItemChecked(i, if (items[i] == clearFavicons) false else true)
             }
 
-            val builder = AlertDialog.Builder(activity)
+            val builder = AlertDialog.Builder(requireActivity())
             builder.setView(listView)
-            builder.setIcon(Util.getAlertIcon(activity))
+            builder.setIcon(Util.getAlertIcon(requireActivity()))
             builder.setPositiveButton(R.string.action_clear_data, DialogInterface.OnClickListener { dialog, which ->
 
-                val webView = WebView(activity)
-                val webViewDatabase = WebViewDatabase.getInstance(activity.applicationContext)
+                val webView = WebView(requireActivity())
+                val webViewDatabase = WebViewDatabase.getInstance(requireActivity().applicationContext)
                 var dataCleared = false
                 val count = listView.count
                 for (i in 0 until count) {
@@ -770,10 +729,10 @@ class SettingsActivity : AppCompatPreferenceActivity() {
                     var reloaded = false
 
                     if (MainController.get() != null) {
-                        reloaded = MainController.get()!!.reloadAllTabs(activity)
+                        reloaded = MainController.get()!!.reloadAllTabs(requireActivity())
                     }
 
-                    Toast.makeText(activity, if (reloaded) R.string.private_data_cleared_reloading_current else R.string.private_data_cleared,
+                    Toast.makeText(requireActivity(), if (reloaded) R.string.private_data_cleared_reloading_current else R.string.private_data_cleared,
                             Toast.LENGTH_SHORT).show()
                 }
             })

@@ -8,9 +8,9 @@ import android.app.AlertDialog
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.preference.Preference
-import android.preference.PreferenceFragment
+import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.preference.PreferenceFragmentCompat
 import android.view.MenuItem
 import android.view.View
 import android.webkit.WebView
@@ -26,7 +26,7 @@ import com.peek.browser.util.Util
  * This class exists solely because Android's PreferenceScreen implementation doesn't do anything
  * when the Up button is touched, and we need to go back in that case given our use of the Up button.
  */
-class SettingsHelpActivity : AppCompatPreferenceActivity() {
+class SettingsHelpActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,35 +59,33 @@ class SettingsHelpActivity : AppCompatPreferenceActivity() {
         overridePendingTransition(R.anim.activity_close_enter, R.anim.activity_close_exit)
     }
 
-    class SettingsHelpFragment : PreferenceFragment() {
+    class SettingsHelpFragment : PreferenceFragmentCompat() {
 
-        override fun onCreate(savedInstanceState: Bundle?) {
-            super.onCreate(savedInstanceState)
+        override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
+            setPreferencesFromResource(R.xml.preferences_help, rootKey)
 
-            addPreferencesFromResource(R.xml.preferences_help)
-
-            findPreference("preference_credits").setOnPreferenceClickListener {
+            findPreference<androidx.preference.Preference>("preference_credits")!!.setOnPreferenceClickListener {
                 showCreditsDialog()
                 true
             }
 
-            findPreference("preference_osl").setOnPreferenceClickListener {
+            findPreference<androidx.preference.Preference>("preference_osl")!!.setOnPreferenceClickListener {
                 showOpenSourceLicensesDialog()
                 true
             }
 
-            findPreference("preference_show_welcome_message").setOnPreferenceClickListener {
-                MainApplication.openLink(activity, Constant.WELCOME_MESSAGE_URL, Analytics.OPENED_URL_FROM_SETTINGS)
+            findPreference<androidx.preference.Preference>("preference_show_welcome_message")!!.setOnPreferenceClickListener {
+                MainApplication.openLink(requireActivity(), Constant.WELCOME_MESSAGE_URL, Analytics.OPENED_URL_FROM_SETTINGS)
                 true
             }
 
-            findPreference("preference_privacy_policy").setOnPreferenceClickListener {
-                MainApplication.openLink(activity, Constant.PRIVACY_POLICY_URL, Analytics.OPENED_URL_FROM_SETTINGS)
+            findPreference<androidx.preference.Preference>("preference_privacy_policy")!!.setOnPreferenceClickListener {
+                MainApplication.openLink(requireActivity(), Constant.PRIVACY_POLICY_URL, Analytics.OPENED_URL_FROM_SETTINGS)
                 true
             }
 
-            findPreference("preference_terms_of_service").setOnPreferenceClickListener {
-                MainApplication.openLink(activity, Constant.TERMS_OF_SERVICE_URL, Analytics.OPENED_URL_FROM_SETTINGS)
+            findPreference<androidx.preference.Preference>("preference_terms_of_service")!!.setOnPreferenceClickListener {
+                MainApplication.openLink(requireActivity(), Constant.TERMS_OF_SERVICE_URL, Analytics.OPENED_URL_FROM_SETTINGS)
                 true
             }
         }
@@ -96,20 +94,20 @@ class SettingsHelpActivity : AppCompatPreferenceActivity() {
         var mForceCrashToast: Toast? = null
 
         fun showCreditsDialog() {
-            val layout = View.inflate(activity, R.layout.view_credits, null)
+            val layout = View.inflate(requireActivity(), R.layout.view_credits, null)
 
-            val builder = AlertDialog.Builder(activity)
+            val builder = AlertDialog.Builder(requireActivity())
             builder.setNegativeButton(android.R.string.ok, null)
             builder.setView(layout)
             builder.setTitle(R.string.credits_title)
 
             val alertDialog = builder.create()
-            alertDialog.setIcon(Util.getAlertIcon(activity))
+            alertDialog.setIcon(Util.getAlertIcon(requireActivity()))
             Util.showThemedDialog(alertDialog)
         }
 
         private fun showOpenSourceLicensesDialog() {
-            val webView = WebView(activity)
+            val webView = WebView(requireActivity())
             webView.loadUrl("file:///android_asset/open_source_licenses.html")
             webView.webViewClient = object : WebViewClient() {
                 override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
@@ -120,8 +118,8 @@ class SettingsHelpActivity : AppCompatPreferenceActivity() {
                 }
             }
 
-            val builder = AlertDialog.Builder(activity)
-            builder.setIcon(Util.getAlertIcon(activity))
+            val builder = AlertDialog.Builder(requireActivity())
+            builder.setIcon(Util.getAlertIcon(requireActivity()))
             builder.setNegativeButton(R.string.action_ok, null)
             builder.setView(webView)
             builder.setTitle(R.string.preference_osl_title)

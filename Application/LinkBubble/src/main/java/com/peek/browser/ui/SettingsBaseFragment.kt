@@ -9,13 +9,15 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
-import android.preference.Preference
-import android.preference.PreferenceFragment
+import androidx.core.content.res.ResourcesCompat
+import androidx.preference.Preference
+import androidx.preference.PreferenceFragmentCompat
 
-open class SettingsBaseFragment : PreferenceFragment() {
+// PreferenceFragmentCompat.onCreatePreferences() is abstract; left to each concrete subclass.
+abstract class SettingsBaseFragment : PreferenceFragmentCompat() {
 
     fun setPreferenceIcon(preference: Preference, iconResId: Int) {
-        setPreferenceIcon(preference, resources.getDrawable(iconResId))
+        setPreferenceIcon(preference, ResourcesCompat.getDrawable(resources, iconResId, null))
     }
 
     /*
@@ -26,12 +28,9 @@ open class SettingsBaseFragment : PreferenceFragment() {
     fun setPreferenceIcon(preference: Preference, drawableIn: Drawable?) {
         var drawable = drawableIn
         if (drawable is BitmapDrawable) {
-            //getResources().getDrawableForDensity()
-            //getResources().getDrawableForDensity()
             val bitmap = drawable.bitmap
-            val activityManager = activity!!.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+            val activityManager = requireActivity().getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
             val iconSize = (activityManager.launcherLargeIconSize * .67f).toInt()
-            //int iconSize = getResources().getDimensionPixelSize(R.dimen.settings_icon_size);
             val w = bitmap.width
             val h = bitmap.height
             val largest = Math.max(w, h)

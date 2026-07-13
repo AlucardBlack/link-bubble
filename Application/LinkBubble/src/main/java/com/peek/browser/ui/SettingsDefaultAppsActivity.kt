@@ -4,17 +4,16 @@
 
 package com.peek.browser.ui
 
-import android.annotation.SuppressLint
 import android.app.AlertDialog
-import android.content.ComponentName
 import android.content.DialogInterface
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
-import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.preference.ListPreference
-import android.preference.Preference
-import android.preference.PreferenceCategory
+import androidx.preference.ListPreference
+import androidx.preference.Preference
+import androidx.preference.PreferenceCategory
+import androidx.preference.PreferenceManager
+import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import android.view.MenuItem
 import com.peek.browser.R
@@ -26,7 +25,7 @@ import com.peek.browser.util.Util
  * This class exists solely because Android's PreferenceScreen implementation doesn't do anything
  * when the Up button is touched, and we need to go back in that case given our use of the Up button.
  */
-class SettingsDefaultAppsActivity : AppCompatPreferenceActivity() {
+class SettingsDefaultAppsActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,23 +60,21 @@ class SettingsDefaultAppsActivity : AppCompatPreferenceActivity() {
 
     class SettingsDefaultAppsFragment : SettingsBaseFragment(), SharedPreferences.OnSharedPreferenceChangeListener {
 
-        override fun onCreate(savedInstanceState: Bundle?) {
-            super.onCreate(savedInstanceState)
+        override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
+            setPreferencesFromResource(R.xml.preferences_default_apps, rootKey)
 
-            addPreferencesFromResource(R.xml.preferences_default_apps)
-
-            val defaultBrowserPreference = findPreference(Settings.PREFERENCE_DEFAULT_BROWSER)
+            val defaultBrowserPreference = findPreference<Preference>(Settings.PREFERENCE_DEFAULT_BROWSER)!!
             defaultBrowserPreference.summary = Settings.get().getDefaultBrowserLabel()
-            val defaultBrowserIcon = Settings.get().getDefaultBrowserIcon(activity)
+            val defaultBrowserIcon = Settings.get().getDefaultBrowserIcon(requireActivity())
             if (defaultBrowserIcon != null) {
                 setPreferenceIcon(defaultBrowserPreference, defaultBrowserIcon)
             }
             defaultBrowserPreference.setOnPreferenceClickListener {
-                val alertDialog = ActionItem.getDefaultBrowserAlert(activity, object : ActionItem.OnActionItemSelectedListener {
+                val alertDialog = ActionItem.getDefaultBrowserAlert(requireActivity(), object : ActionItem.OnActionItemSelectedListener {
                     override fun onSelected(actionItem: ActionItem) {
                         Settings.get().setDefaultBrowser(actionItem.getLabel(), actionItem.mPackageName)
                         defaultBrowserPreference.summary = Settings.get().getDefaultBrowserLabel()
-                        val icon = Settings.get().getDefaultBrowserIcon(activity)
+                        val icon = Settings.get().getDefaultBrowserIcon(requireActivity())
                         if (icon != null) {
                             setPreferenceIcon(defaultBrowserPreference, icon)
                         }
@@ -91,12 +88,12 @@ class SettingsDefaultAppsActivity : AppCompatPreferenceActivity() {
         }
 
         private fun configureDefaultAppsList() {
-            val preferenceCategory = findPreference("preference_category_other_apps") as PreferenceCategory
+            val preferenceCategory = findPreference<PreferenceCategory>("preference_category_other_apps")!!
             preferenceCategory.removeAll()
 
-            val noticePreference = Preference(activity)
+            val noticePreference = Preference(requireActivity())
 
-            val packageManager = activity.packageManager
+            val packageManager = requireActivity().packageManager
             val defaultAppsMap = Settings.get().getDefaultAppsMap()
             if (defaultAppsMap != null && defaultAppsMap.size > 0) {
                 noticePreference.setSummary(R.string.preference_default_apps_notice_summary)
@@ -108,14 +105,14 @@ class SettingsDefaultAppsActivity : AppCompatPreferenceActivity() {
                         val info = packageManager.getActivityInfo(componentName!!, 0)
                         val label = info.loadLabel(packageManager)
                         val host = key
-                        val preference = Preference(activity)
+                        val preference = Preference(requireActivity())
                         preference.title = label
                         setPreferenceIcon(preference, info.loadIcon(packageManager))
                         preference.summary = key
                         preference.setOnPreferenceClickListener {
-                            val resources = activity.resources
-                            val alertDialog = AlertDialog.Builder(activity).create()
-                            alertDialog.setIcon(Util.getAlertIcon(activity))
+                            val resources = requireActivity().resources
+                            val alertDialog = AlertDialog.Builder(requireActivity()).create()
+                            alertDialog.setIcon(Util.getAlertIcon(requireActivity()))
                             alertDialog.setTitle(R.string.remove_default_title)
                             alertDialog.setMessage(String.format(resources.getString(R.string.remove_default_message), label, host, host))
                             alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, resources.getString(R.string.action_remove),
@@ -143,7 +140,7 @@ class SettingsDefaultAppsActivity : AppCompatPreferenceActivity() {
         override fun onResume() {
             super.onResume()
 
-            preferenceScreen.sharedPreferences.registerOnSharedPreferenceChangeListener(this)
+            PreferenceManager.getDefaultSharedPreferences(requireContext()).registerOnSharedPreferenceChangeListener(this)
 
             configureDefaultAppsList()
         }
@@ -151,11 +148,12 @@ class SettingsDefaultAppsActivity : AppCompatPreferenceActivity() {
         override fun onPause() {
             super.onPause()
 
-            preferenceScreen.sharedPreferences.unregisterOnSharedPreferenceChangeListener(this)
+            PreferenceManager.getDefaultSharedPreferences(requireContext()).unregisterOnSharedPreferenceChangeListener(this)
         }
 
         override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String?) {
-            val preference = findPreference(key)
+            key ?: return
+            val preference = findPreference<Preference>(key)
 
             if (preference is ListPreference) {
                 preference.summary = preference.entry
