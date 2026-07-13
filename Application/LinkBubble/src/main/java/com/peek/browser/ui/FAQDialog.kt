@@ -64,20 +64,10 @@ class FAQDialog(context: Activity) {
         val listView = layout.findViewById<StickyListHeadersListView>(R.id.faq_list)
         listView.setOnItemClickListener(object : AdapterView.OnItemClickListener {
             override fun onItemClick(parent: AdapterView<*>, view: View, position: Int, id: Long) {
-                if (position == sBetaIndex) {
-                    // We do not use it with Brave, maybe have to remove.
-                    val i = Intent(Intent.ACTION_VIEW)
-                    i.data = Uri.parse("http://linkbubble.com/device/link_bubble_beta.html")
-                    mActivity.startActivity(i)
-                } else if (position == sTransliationsIndex) {
-                    val i = Intent(Intent.ACTION_VIEW)
-                    i.data = Uri.parse("http://www.getlocalization.com/LinkBubble/")
-                    mActivity.startActivity(i)
-                } else if (position == sFAQSize - 1) {
-                    val emailIntent = Intent(Intent.ACTION_SENDTO,
-                            Uri.fromParts("mailto", "support+linkbubble@brave.com", null))
+                if (position == sFAQSize - 1) {
+                    val emailIntent = Intent(Intent.ACTION_SENDTO, Uri.fromParts("mailto", "", null))
                     val appVersion = BuildConfig.VERSION_NAME
-                    val subject = "[Link Bubble] Report a bug (v" + appVersion + ", Android " + Constant.getOSFlavor() +
+                    val subject = "[Peek] Report a bug (v" + appVersion + ", Android " + Constant.getOSFlavor() +
                             ", " + android.os.Build.MODEL + ", " + Locale.getDefault().language + ")"
                     emailIntent.putExtra(Intent.EXTRA_SUBJECT, subject)
                     emailIntent.putExtra(Intent.EXTRA_TEXT, "My bug is ...\n\nHow often does the problem occur?\n\nAre you running a ROM and/or a modified framework/kernel? ")
@@ -191,8 +181,6 @@ class FAQDialog(context: Activity) {
                 "faq_app_internal_browser",
                 "faq_close_tab",
                 "faq_article_mode",
-                "faq_next_update_eta",
-                "faq_translations",
 
                 "faq_back_button_minimize",
                 "faq_cant_type_url",
@@ -208,9 +196,7 @@ class FAQDialog(context: Activity) {
                 "faq_report_bug"
         )
 
-        private const val sBetaIndex = 3
-        private const val sTransliationsIndex = 4
-        private const val sFunctionalityIndex = 5
-        private const val sIssuesIndex = 14
+        private const val sFunctionalityIndex = 3
+        private const val sIssuesIndex = 12
     }
 }

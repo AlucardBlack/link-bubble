@@ -197,7 +197,7 @@ class ArticleContent {
 
             // Ignore the media sites
             val host = url.host
-            if (host.contains("google.com") || host == "imgur.com" || host == "instagram.com" || host == "linkbubble.com"
+            if (host.contains("google.com") || host == "imgur.com" || host == "instagram.com"
                     || host == "reddit.com" || host == "twitter.com" || host == "vine.co" || host == "vimeo.com"
                     || host == "youtube.com") {
                 Log.d(TAG, "ignore host for url: $url")
