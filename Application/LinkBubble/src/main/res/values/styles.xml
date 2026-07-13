@@ -97,13 +97,15 @@
         <item name="android:background">#f5f5f5</item>
     </style>
 
-    <style name="ActionButton">
+    <!-- Was a raw Button with a hand-drawn selector background + a separate hardcoded-size
+         shadow View as a sibling; now a real Material3 filled button, ripple/elevation/state
+         handled by the framework. android:background/textColor deliberately unset - inherited
+         from Widget.Material3.Button (colorPrimary fill, colorOnPrimary text). -->
+    <style name="ActionButton" parent="Widget.Material3.Button">
         <item name="android:layout_width">200dp</item>
-        <item name="android:layout_height">44dp</item>
-        <item name="android:gravity">center</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:minHeight">48dp</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:textColor">@android:color/white</item>
-        <item name="android:background">@drawable/action_button</item>
     </style>
 
     <style name="Prompt">

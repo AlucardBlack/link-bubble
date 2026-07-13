@@ -5,9 +5,10 @@
               android:orientation="horizontal"
               android:layout_width="match_parent"
               android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
                 android:paddingLeft="16dp"
-                android:paddingBottom="4dp"
-                android:paddingTop="4dp"
+                android:paddingBottom="12dp"
+                android:paddingTop="12dp"
                 android:paddingRight="16dp"
     tools:context=".ui.HistoryActivity">
 
@@ -28,8 +29,8 @@
         <com.peek.browser.ui.CondensedTextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:textSize="16sp"
+            android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+            android:textColor="?attr/colorOnSurface"
             android:id="@+id/page_title"
             android:text="Web page title goes here"
             android:singleLine="true"
@@ -44,7 +45,8 @@
             <com.peek.browser.ui.CondensedTextView
                 android:layout_width="0dip"
                 android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textAppearance="@style/TextAppearance.Material3.BodySmall"
+                android:textColor="?attr/colorOnSurfaceVariant"
                 android:id="@+id/page_url"
                 android:text="http://www.google.com"
                 android:singleLine="true"
@@ -54,7 +56,8 @@
             <com.peek.browser.ui.CondensedTextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textAppearance="@style/TextAppearance.Material3.BodySmall"
+                android:textColor="?attr/colorOnSurfaceVariant"
                 android:id="@+id/page_date"
                 android:text="11am"
                 android:singleLine="true"

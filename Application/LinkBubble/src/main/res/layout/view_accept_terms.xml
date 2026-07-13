@@ -2,35 +2,46 @@
 
 <FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/root_layout"
-    android:background="#ee000000">
+    android:background="#B3000000">
 
-    <LinearLayout
+    <com.google.android.material.card.MaterialCardView
         style="@style/AcceptTermsText"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:paddingRight="20dp"
-        android:paddingLeft="20dp"
-        android:orientation="vertical">
+        android:layout_marginHorizontal="32dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="8dp"
+        app:cardBackgroundColor="?attr/colorSurface">
 
-        <TextView
-            android:id="@+id/accept_terms_and_privacy_text"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/accept_terms_and_privacy"
-            android:textAppearance="?android:attr/textAppearanceMediumInverse"
-            android:layout_marginBottom="20dp"/>
+            android:orientation="vertical"
+            android:padding="24dp">
 
-        <Button
-            style="@style/ActionButton"
-            android:id="@+id/accept_terms_and_privacy_button"
-            android:text="@android:string/ok"
-            android:layout_gravity="center_horizontal|bottom"
-            />
+            <TextView
+                android:id="@+id/accept_terms_and_privacy_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/accept_terms_and_privacy"
+                android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                android:textColor="?attr/colorOnSurface"
+                android:layout_marginBottom="20dp"/>
 
-    </LinearLayout>
+            <Button
+                style="@style/ActionButton"
+                android:id="@+id/accept_terms_and_privacy_button"
+                android:text="@android:string/ok"
+                android:layout_gravity="center_horizontal|bottom"
+                />
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
 
 </FrameLayout>

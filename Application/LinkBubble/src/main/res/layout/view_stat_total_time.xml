@@ -14,8 +14,8 @@
         android:layout_height="wrap_content"
         android:text="@string/stat_has_saved_you"
         android:layout_gravity="center_horizontal"
-        android:textColor="@color/color_highlight"
-        android:textAppearance="?android:attr/textAppearanceMedium"/>
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:textAppearance="@style/TextAppearance.Material3.TitleMedium"/>
 
     <com.peek.browser.ui.CondensedTextView
         android:id="@+id/time_total"
@@ -23,12 +23,11 @@
         android:layout_height="@dimen/stat_bubble_size"
         android:layout_gravity="center_horizontal"
         android:text="3.1\nminutes"
-        android:textColor="@android:color/white"
+        android:textColor="?attr/colorOnPrimary"
         android:gravity="center"
-        android:textAppearance="?android:attr/textAppearanceLarge"
         android:textStyle="bold"
         android:textSize="@dimen/stat_bubble_text_size"
-        android:background="@drawable/stat_background_brave_orange"
+        android:background="@drawable/stat_bubble_background"
         tools:ignore="HardcodedText"/>
 
     <com.peek.browser.ui.CondensedTextView
@@ -36,7 +35,7 @@
         android:layout_height="wrap_content"
         android:text="@string/stat_so_far"
         android:layout_gravity="center_horizontal"
-        android:textColor="@color/color_highlight"
-        android:textAppearance="?android:attr/textAppearanceMedium"/>
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:textAppearance="@style/TextAppearance.Material3.TitleMedium"/>
 
 </LinearLayout>

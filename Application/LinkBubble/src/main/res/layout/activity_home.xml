@@ -9,7 +9,7 @@
     tools:context=".HomeActivity"
     android:background="@color/window_background">
 
-    <androidx.appcompat.widget.Toolbar
+    <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
         android:layout_height="wrap_content"
         android:layout_width="match_parent"
@@ -48,12 +48,6 @@
                 android:layout_gravity="center_horizontal|bottom"
                 android:layout_marginBottom="7dp" />
 
-            <View
-                android:layout_width="214dp"
-                android:layout_height="58dp"
-                android:layout_gravity="center_horizontal|bottom"
-                android:background="@drawable/action_button_shadow"/>
-
         </FrameLayout>
 
 
@@ -63,12 +57,6 @@
             android:layout_gravity="center_horizontal|bottom"
             android:id="@+id/action_button_container"
             android:layout_marginBottom="@dimen/home_activity_bottom_margin">
-
-            <View
-                android:layout_width="214dp"
-                android:layout_height="58dp"
-                android:layout_gravity="center"
-                android:background="@drawable/action_button_shadow"/>
 
             <Button
                 style="@style/ActionButton"
