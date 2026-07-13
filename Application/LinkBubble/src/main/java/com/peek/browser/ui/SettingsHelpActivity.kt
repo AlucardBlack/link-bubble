@@ -73,21 +73,6 @@ class SettingsHelpActivity : AppCompatActivity() {
                 showOpenSourceLicensesDialog()
                 true
             }
-
-            findPreference<androidx.preference.Preference>("preference_show_welcome_message")!!.setOnPreferenceClickListener {
-                MainApplication.openLink(requireActivity(), Constant.WELCOME_MESSAGE_URL, Analytics.OPENED_URL_FROM_SETTINGS)
-                true
-            }
-
-            findPreference<androidx.preference.Preference>("preference_privacy_policy")!!.setOnPreferenceClickListener {
-                MainApplication.openLink(requireActivity(), Constant.PRIVACY_POLICY_URL, Analytics.OPENED_URL_FROM_SETTINGS)
-                true
-            }
-
-            findPreference<androidx.preference.Preference>("preference_terms_of_service")!!.setOnPreferenceClickListener {
-                MainApplication.openLink(requireActivity(), Constant.TERMS_OF_SERVICE_URL, Analytics.OPENED_URL_FROM_SETTINGS)
-                true
-            }
         }
 
         private var mForceCrashCountdown = TAPS_TO_FORCE_A_CRASH

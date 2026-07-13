@@ -20,6 +20,6 @@
     }
   }
   if (linksCount > 0) {
-    window.LinkBubble.onTouchIconLinks(linksArray.toString());
+    window.Peek.onTouchIconLinks(linksArray.toString());
   }
 })();

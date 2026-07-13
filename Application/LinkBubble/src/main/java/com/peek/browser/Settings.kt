@@ -40,7 +40,7 @@ class Settings private constructor(private val mContext: Context) {
     private var mBrowserPackageNames: MutableList<String>? = null
 
     @JvmField
-    var mLinkBubbleEntryActivityResolveInfo: ResolveInfo? = null
+    var mPeekEntryActivityResolveInfo: ResolveInfo? = null
 
     private var mIgnoreLinksFromPackageNames: MutableList<String>? = null
     private var mWebViewBatterySaveMode: WebViewBatterySaveMode? = null
@@ -102,7 +102,6 @@ class Settings private constructor(private val mContext: Context) {
             val packageManager = mContext.packageManager
 
             configureDefaultApp(packageManager, "https://www.youtube.com/watch?v=_Aj-PRdU7xA", "com.google.android.youtube")
-            configureDefaultApp(packageManager, "https://plus.google.com/+LinkBubble/posts/RdMoBbbjPUi", "com.google.android.apps.plus")
             configureDefaultApp(packageManager, "https://play.google.com/store/apps/details?id=com.peek.browser.playstore&hl=en", "com.android.vending")
             configureDefaultApp(packageManager, "https://maps.google.com/maps/ms?msid=212078515518849153944.000434d59f7fc56a57668", "com.google.android.apps.maps")
             saveDefaultApps()
@@ -113,7 +112,7 @@ class Settings private constructor(private val mContext: Context) {
                 editor.putLong(LAST_FLUSH_WEBVIEW_CACHE_TIME, System.currentTimeMillis() - Constant.EMPTY_WEBVIEW_CACHE_INTERVAL)
                 editor.apply()
             }
-            // This option is being added in 1.9.58 to reset fallback browser, to set it to tabbed Brave.
+            // One-time migration: clear any fallback browser that was auto-selected by a previous version.
             if (!mSharedPreferences.getBoolean(PREFERENCE_DID_RESET_FALLBACK_BROWSER, false)) {
                 val editor = mSharedPreferences.edit()
                 editor.putBoolean(PREFERENCE_DID_RESET_FALLBACK_BROWSER, true)
@@ -135,19 +134,6 @@ class Settings private constructor(private val mContext: Context) {
         val defaultRedirects = HashSet<String>()
         defaultRedirects.add("accounts.google.com")
         configureFallbackRedirectHosts(mSharedPreferences.getStringSet(PREFERENCE_FALLBACK_REDIRECT_HOSTS, defaultRedirects))
-    }
-
-    fun showNewBraveBrowserNotification(): Boolean {
-        // This option is being added in 1.9.58 to show notification about new tabbed Brave browser.
-        if (mSharedPreferences.getBoolean(PREFERENCE_SHOW_NEW_BRAVE_BROWSER, true)) {
-            val editor = mSharedPreferences.edit()
-            editor.putBoolean(PREFERENCE_SHOW_NEW_BRAVE_BROWSER, false)
-            editor.apply()
-
-            return true
-        }
-
-        return false
     }
 
     private fun checkForVersionUpgrade() {
@@ -270,50 +256,18 @@ class Settings private constructor(private val mContext: Context) {
         queryIntent.action = Intent.ACTION_VIEW
         queryIntent.data = Uri.parse("http://www.fdasfjsadfdsfas.com")        // Something stupid that no non-browser app will handle
         val resolveInfos = packageManager.queryIntentActivities(queryIntent, PackageManager.GET_RESOLVED_FILTER)
-        var fallbackDefaultBrowserPackageName: String? = null
-        var fallbackDefaultBrowserActivityClassName: String? = null
         for (resolveInfo in resolveInfos) {
             val filter: IntentFilter? = resolveInfo.filter
             if (filter != null && filter.hasAction(Intent.ACTION_VIEW) && filter.hasCategory(Intent.CATEGORY_BROWSABLE)) {
-                // Ignore LinkBubble from this list
+                // Ignore this app itself from this list
                 if (resolveInfo.activityInfo.packageName == BuildConfig.APPLICATION_ID) {
-                    mLinkBubbleEntryActivityResolveInfo = resolveInfo
+                    mPeekEntryActivityResolveInfo = resolveInfo
                 } else if (Util.isValidBrowserPackageName(resolveInfo.activityInfo.packageName)) {
                     val intent = Intent(Intent.ACTION_VIEW)
                     intent.setClassName(resolveInfo.activityInfo.packageName, resolveInfo.activityInfo.name)
                     browsers.add(intent)
                     browserPackageNames.add(resolveInfo.activityInfo.packageName)
-                    if (resolveInfo.activityInfo.packageName == mContext.resources.getString(R.string.tab_based_browser_id_name)) {
-                        fallbackDefaultBrowserPackageName = resolveInfo.activityInfo.packageName
-                        fallbackDefaultBrowserActivityClassName = resolveInfo.activityInfo.name
-                    }
                 }
-            }
-        }
-
-        val defaultBrowserPackage = mSharedPreferences.getString(PREFERENCE_DEFAULT_BROWSER_PACKAGE_NAME, null)
-        //String rightConsumeBubblePackageName = mSharedPreferences.getString(PREFERENCE_RIGHT_CONSUME_BUBBLE_PACKAGE_NAME, null);
-        val leftConsumeBubblePackageName = mSharedPreferences.getString(PREFERENCE_LEFT_CONSUME_BUBBLE_PACKAGE_NAME, null)
-
-        if (fallbackDefaultBrowserPackageName != null) {
-            try {
-                val applicationInfo = packageManager.getApplicationInfo(fallbackDefaultBrowserPackageName, 0)
-                val defaultBrowserLabel = packageManager.getApplicationLabel(applicationInfo).toString()
-
-                if (defaultBrowserPackage == null || !doesPackageExist(packageManager, defaultBrowserPackage)) {
-                    val editor = mSharedPreferences.edit()
-                    editor.putString(PREFERENCE_DEFAULT_BROWSER_LABEL, defaultBrowserLabel)
-                    editor.putString(PREFERENCE_DEFAULT_BROWSER_PACKAGE_NAME, fallbackDefaultBrowserPackageName)
-                    editor.commit()
-                }
-                if (leftConsumeBubblePackageName != null && !doesPackageExist(packageManager, leftConsumeBubblePackageName)) {
-                    setConsumeBubble(Constant.BubbleAction.ConsumeLeft, Constant.ActionType.View,
-                            defaultBrowserLabel,
-                            fallbackDefaultBrowserPackageName, fallbackDefaultBrowserActivityClassName)
-                }
-
-            } catch (e: PackageManager.NameNotFoundException) {
-                e.printStackTrace()
             }
         }
     }
@@ -811,14 +765,12 @@ class Settings private constructor(private val mContext: Context) {
                     } else {
                         // And some special case code for me to ignore alternate builds
                         if (BuildConfig.DEBUG) {
-                            if (info.activityInfo.packageName == "com.peek.browser.playstore"
-                                    || info.activityInfo.packageName == "com.brave.playstore") {
+                            if (info.activityInfo.packageName == "com.peek.browser.playstore") {
                                 //Log.d("blerg", "ignore " + info.activityInfo.packageName);
                                 packageOk = false
                             }
                         } else {
-                            if (info.activityInfo.packageName == "com.peek.browser.playstore.dev"
-                                    || info.activityInfo.packageName == "com.brave.playstore.dev") {
+                            if (info.activityInfo.packageName == "com.peek.browser.playstore.dev") {
                                 //Log.d("blerg", "ignore " + info.activityInfo.packageName);
                                 packageOk = false
                             }
@@ -852,7 +804,7 @@ class Settings private constructor(private val mContext: Context) {
                 val componentName = ComponentName.unflattenFromString(flattenedComponentName)
                 if (componentName != null) {
                     for (resolveInfo in resolveInfos) {
-                        // Handle crash: https://fabric.io/brave6/android/apps/com.peek.browser.playstore/issues/5623e787f5d3a7f76be5b166
+                        // Handle crash: activityInfo can be null for a disabled/uninstalled resolveInfo entry.
                         if (resolveInfo == null || resolveInfo.activityInfo == null) {
                             CrashTracking.log("Null resolveInfo when getting default for app: $resolveInfo")
                             continue
@@ -865,7 +817,7 @@ class Settings private constructor(private val mContext: Context) {
                     }
 
                     if (componentName.packageName == mContext.packageName) {
-                        return mLinkBubbleEntryActivityResolveInfo
+                        return mPeekEntryActivityResolveInfo
                     }
                 }
             }
@@ -910,10 +862,7 @@ class Settings private constructor(private val mContext: Context) {
         try {
             val jsonArray = JSONArray(json)
             for (i in 0 until jsonArray.length()) {
-                val urlAsString = jsonArray.getString(i)
-                if (urlAsString != Constant.WELCOME_MESSAGE_URL) {
-                    urls.add(urlAsString)
-                }
+                urls.add(jsonArray.getString(i))
             }
         } catch (e: JSONException) {
             e.printStackTrace()
@@ -1038,15 +987,6 @@ class Settings private constructor(private val mContext: Context) {
         editor.commit()
     }
 
-    fun setWelcomeMessageDisplayed(displayed: Boolean) {
-        val editor = mSharedPreferences.edit()
-        editor.putBoolean(WELCOME_MESSAGE_DISPLAYED, displayed)
-        editor.commit()
-    }
-
-    fun getWelcomeMessageDisplayed(): Boolean {
-        return mSharedPreferences.getBoolean(WELCOME_MESSAGE_DISPLAYED, false)
-    }
 
     fun setTermsAccepted(accepted: Boolean) {
         val editor = mSharedPreferences.edit()
@@ -1353,11 +1293,9 @@ class Settings private constructor(private val mContext: Context) {
         private const val BUBBLE_RESTING_X = "bubble_resting_x"
         private const val BUBBLE_RESTING_Y = "bubble_resting_y"
 
-        private const val WELCOME_MESSAGE_DISPLAYED = "welcome_message_displayed"
         private const val TERMS_ACCEPTED = "terms_accepted"
         private const val LAST_FLUSH_WEBVIEW_CACHE_TIME = "last_flush_cache_time"
         private const val PREFERENCE_DID_RESET_FALLBACK_BROWSER = "did_reset_fallback_browser"
-        private const val PREFERENCE_SHOW_NEW_BRAVE_BROWSER = "show_new_brave_browser"
 
         @JvmStatic
         fun initModule(context: Context) {

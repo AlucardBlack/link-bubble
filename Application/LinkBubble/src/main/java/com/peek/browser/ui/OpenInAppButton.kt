@@ -63,7 +63,7 @@ class OpenInAppButton @JvmOverloads constructor(
     fun configure(appsForUrl: List<ContentView.AppForUrl>): Boolean {
         mAppsForUrl.clear()
         for (appForUrl in appsForUrl) {
-            if (Util.isLinkBubbleResolveInfo(appForUrl.mResolveInfo) == false) {
+            if (Util.isPeekResolveInfo(appForUrl.mResolveInfo) == false) {
                 mAppsForUrl.add(appForUrl)
             }
         }

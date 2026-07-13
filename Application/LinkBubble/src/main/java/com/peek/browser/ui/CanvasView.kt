@@ -315,7 +315,6 @@ class CanvasView(context: Context) : FrameLayout(context) {
 
             // The webview can throw an exception when trying to remove focus inside of removeView.
             // To prevent a crash we try to manually unfocus first, within a try/catch to reset ViewGroup::mFocused.
-            // Prevents crash: https://fabric.io/brave6/android/apps/com.peek.browser.playstore/issues/55dccdeee0d514e5d640ab55
             try {
                 mContentView!!.clearFocus()
             } catch (e: Exception) {

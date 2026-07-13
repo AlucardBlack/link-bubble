@@ -390,10 +390,10 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     }
 
     companion object {
-        private const val TAG = "LinkBubbleDB"
+        private const val TAG = "PeekDB"
 
         private const val DATABASE_VERSION = 1
-        private const val DATABASE_NAME = "LinkBubbleDB"
+        private const val DATABASE_NAME = "PeekDB"
 
         private const val TABLE_LINK_HISTORY = "linkHistory"
         private const val TABLE_FAVICON_CACHE = "favicons"

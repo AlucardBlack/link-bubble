@@ -18,7 +18,6 @@ abstract class WebRenderer(context: Context, controller: WebRenderer.Controller,
         fun resetBubblePanelAdjustment()
         fun adjustBubblesPanel(newY: Int, oldY: Int, afterTouchAdjust: Boolean)
         fun shouldAdBlockUrl(baseHost: String, urlStr: String, filterOption: String): Boolean
-        fun adInsertionList(baseHost: String): String
         fun shouldOverrideUrlLoading(urlAsString: String, viaUserInput: Boolean): Boolean
         fun doUpdateVisitedHistory(url: String, isReload: Boolean, unknownClick: Boolean)
         fun onLoadUrl(urlAsString: String)      // may or may not be called
@@ -77,7 +76,7 @@ abstract class WebRenderer(context: Context, controller: WebRenderer.Controller,
 
     abstract fun resetPageInspector()
 
-    open fun runPageInspector(adInsert: String?) {}
+    open fun runPageInspector() {}
 
     abstract fun getUserAgentString(context: Context): String?
 

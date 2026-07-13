@@ -63,7 +63,6 @@ import com.peek.browser.R
 import com.peek.browser.Settings
 import com.peek.browser.adblock.ABPFilterParser
 import com.peek.browser.adblock.WhiteListCollector
-import com.peek.browser.adinsert.AdInserter
 import com.peek.browser.articlerender.ArticleContent
 import com.peek.browser.articlerender.ArticleRenderer
 import com.peek.browser.util.ActionItem
@@ -133,7 +132,7 @@ class ContentView @JvmOverloads constructor(
     private val mUrlStack: Stack<URL> = Stack()
     // We only want to handle this once per link. This prevents 3+ dialogs appearing for some links, which is a bad experience. #224
     private var mHandledAppPickerForCurrentUrl = false
-    private var mUsingLinkBubbleAsDefaultForCurrentUrl = false
+    private var mUsingPeekAsDefaultForCurrentUrl = false
 
     private lateinit var mAdapter: SearchURLCustomAdapter
     private var mFirstSuggestedItem: SearchURLSuggestions? = null
@@ -406,7 +405,7 @@ class ContentView @JvmOverloads constructor(
 
         mOwnerTabView = ownerTabView
         mHandledAppPickerForCurrentUrl = hasShownAppPicker
-        mUsingLinkBubbleAsDefaultForCurrentUrl = false
+        mUsingPeekAsDefaultForCurrentUrl = false
 
         if (hasShownAppPicker) {
             mAppPickersUrls.add(urlAsString)
@@ -599,23 +598,6 @@ class ContentView @JvmOverloads constructor(
             return parser.shouldBlockJava(baseHost, urlStr, filterOption)
         }
 
-        override fun adInsertionList(baseHost: String): String {
-            if (mHostInWhiteList) {
-                return ""
-            }
-
-            val app = mContext.applicationContext as MainApplication
-            if (!app.mAdInserterEnabled) {
-                return ""
-            }
-            val adInsertionList = app.getAdInserter()
-            if (null == adInsertionList) {
-                return ""
-            }
-
-            return adInsertionList.getHostObjects(baseHost)
-        }
-
         private var mConsecutiveRedirectCount = 0
 
         override fun doUpdateVisitedHistory(url: String, isReload: Boolean, unknownClick: Boolean) {
@@ -688,7 +670,7 @@ class ContentView @JvmOverloads constructor(
             Log.d(TAG, "shouldOverrideUrlLoading() - url:$urlAsString")
             if (viaUserInput) {
                 mHandledAppPickerForCurrentUrl = false
-                mUsingLinkBubbleAsDefaultForCurrentUrl = false
+                mUsingPeekAsDefaultForCurrentUrl = false
             }
 
             //if (mDelayedAutoContentDisplayLinkLoadedScheduled) {
@@ -800,38 +782,37 @@ class ContentView @JvmOverloads constructor(
             }
 
             if (mHandledAppPickerForCurrentUrl == false
-                    && mUsingLinkBubbleAsDefaultForCurrentUrl == false
+                    && mUsingPeekAsDefaultForCurrentUrl == false
                     && mAppsForUrl.size > 0
                     && Settings.get().didRecentlyRedirectToApp(urlAsString) == false) {
 
                 val defaultAppForUrl = getDefaultAppForUrl()
                 if (defaultAppForUrl != null) {
-                    if (Util.isLinkBubbleResolveInfo(defaultAppForUrl.mResolveInfo)) {
-                        mUsingLinkBubbleAsDefaultForCurrentUrl = true
+                    if (Util.isPeekResolveInfo(defaultAppForUrl.mResolveInfo)) {
+                        mUsingPeekAsDefaultForCurrentUrl = true
                     } else {
                         if (openInApp(defaultAppForUrl.mResolveInfo!!, urlAsString)) {
                             return
                         }
                     }
                 } else {
-                    var isLinkBubblePresent = false
-                    //boolean isLinkBubblePresent = mAppsForUrl.size() == 1 ? Util.isLinkBubbleResolveInfo(mAppsForUrl.get(0).mResolveInfo) : false;
+                    var isPeekPresent = false
+                    //boolean isPeekPresent = mAppsForUrl.size() == 1 ? Util.isPeekResolveInfo(mAppsForUrl.get(0).mResolveInfo) : false;
                     for (info in mAppsForUrl) {
 
-                        // Handle crash: https://fabric.io/brave6/android/apps/com.peek.browser.playstore/issues/562667c7f5d3a7f76bf16a4c
+                        // Handle crash: mResolveInfo/activityInfo can be null for a disabled/uninstalled entry.
                         if (info.mResolveInfo == null || info.mResolveInfo!!.activityInfo == null) {
                             CrashTracking.log("onPageStarted() Null resolveInfo when getting default for app: $info")
                             continue
                         }
 
-                        if (info.mResolveInfo!!.activityInfo.packageName.startsWith("com.peek.browser.playstore")
-                                || info.mResolveInfo!!.activityInfo.packageName.startsWith("com.brave.playstore")) {
-                            isLinkBubblePresent = true
+                        if (info.mResolveInfo!!.activityInfo.packageName.startsWith("com.peek.browser.playstore")) {
+                            isPeekPresent = true
                             break
                         }
                     }
 
-                    if (isLinkBubblePresent == false && MainApplication.sShowingAppPickerDialog == false &&
+                    if (isPeekPresent == false && MainApplication.sShowingAppPickerDialog == false &&
                             mHandledAppPickerForCurrentUrl == false && mAppPickersUrls.contains(urlAsString) == false) {
                         val resolveInfos = ArrayList<ResolveInfo>()
                         for (appForUrl in mAppsForUrl) {
@@ -900,8 +881,7 @@ class ContentView @JvmOverloads constructor(
                 mShareButton.visibility = VISIBLE
             }
 
-            if ((urlAsString == Constant.WELCOME_MESSAGE_URL ||
-                            urlAsString == context.getString(R.string.empty_bubble_page)) && MainController.get() != null) {
+            if (urlAsString == context.getString(R.string.empty_bubble_page) && MainController.get() != null) {
                 MainController.get()!!.displayTab(mOwnerTabView!!)
             }
         }
@@ -955,7 +935,7 @@ class ContentView @JvmOverloads constructor(
 
         override fun onReceivedIcon(bitmap: Bitmap) {
 
-            // Only pass this along if the page has finished loading (https://github.com/brave/LinkBubble/issues/155).
+            // Only pass this along if the page has finished loading.
             // This is to prevent passing a stale icon along when a redirect has already occurred. This shouldn't cause
             // too many ill-effects, because BitmapView attempts to load host/favicon.ico automatically anyway.
             if (mPageFinishedLoading) {
@@ -1086,7 +1066,7 @@ class ContentView @JvmOverloads constructor(
             }
         }
 
-        mWebRenderer.runPageInspector(mWebRendererController.adInsertionList(currentUrl.host.replace("www.", "").replace("m.", "")))
+        mWebRenderer.runPageInspector()
 
         if (equalUrl) {
             updateAppsForUrl(currentUrl)
@@ -1411,10 +1391,7 @@ class ContentView @JvmOverloads constructor(
         }
         mOverflowPopupMenu!!.menu.add(Menu.NONE, R.id.item_reload_page, Menu.NONE, resources.getString(R.string.action_reload_page))
 
-        var defaultBrowserLabel = Settings.get().getDefaultBrowserLabel()
-        if (null == defaultBrowserLabel) {
-            defaultBrowserLabel = resources.getString(R.string.tab_based_browser_name)
-        }
+        val defaultBrowserLabel = Settings.get().getDefaultBrowserLabel()
         if (defaultBrowserLabel != null) {
             mOverflowPopupMenu!!.menu.add(Menu.NONE, R.id.item_open_in_browser, Menu.NONE,
                     String.format(resources.getString(R.string.action_open_in_browser), defaultBrowserLabel))
@@ -1469,13 +1446,7 @@ class ContentView @JvmOverloads constructor(
 
                 R.id.item_open_in_browser -> {
                     CrashTracking.log("ContentView.setOnMenuItemClickListener() - open in browser clicked")
-                    var braveBrowser = false
-                    if (null != item.title
-                            && null != context
-                            && item.title.toString().endsWith(context.resources.getString(R.string.tab_based_browser_name))) {
-                        braveBrowser = true
-                    }
-                    openInBrowser(mWebRenderer.getUrl().toString(), true, braveBrowser)
+                    openInBrowser(mWebRenderer.getUrl().toString(), true)
                 }
 
                 R.id.item_request_desktop_site -> {
@@ -1575,7 +1546,7 @@ class ContentView @JvmOverloads constructor(
             val previousUrlAsString = previousUrl.toString()
             mEventHandler.onCanGoBackChanged(mUrlStack.size > 1)
             mHandledAppPickerForCurrentUrl = false
-            mUsingLinkBubbleAsDefaultForCurrentUrl = false
+            mUsingPeekAsDefaultForCurrentUrl = false
             Log.d(TAG, "[urlstack] Go back: $urlBefore -> ${mWebRenderer.getUrl()}, urlStack.size():${mUrlStack.size}")
             updateAndLoadUrl(previousUrlAsString)
             updateUrlTitleAndText(previousUrlAsString)
@@ -1789,7 +1760,6 @@ class ContentView @JvmOverloads constructor(
 
                         // In certain situations mResolveInfo is null, likely because we can't find the app.
                         // One possibility is that this happens when the app is currently being updated through the play store.
-                        // Prevents crash: https://fabric.io/brave6/android/apps/com.peek.browser.playstore/issues/55dcee53e0d514e5d6413e8d
                         if (existing.mResolveInfo == null) {
                             continue
                         }
@@ -1817,7 +1787,7 @@ class ContentView @JvmOverloads constructor(
                     }
 
                     if (alreadyAdded == false) {
-                        //if (resolveInfoToAdd.activityInfo.packageName.equals(Settings.get().mLinkBubbleEntryActivityResolveInfo.activityInfo.packageName)) {
+                        //if (resolveInfoToAdd.activityInfo.packageName.equals(Settings.get().mPeekEntryActivityResolveInfo.activityInfo.packageName)) {
                         //    continue;
                         //}
                         mTempAppsForUrl.add(resolveInfoToAdd)
@@ -1862,18 +1832,18 @@ class ContentView @JvmOverloads constructor(
             mAppsForUrl.clear()
         }
 
-        var containsLinkBubble = false
+        var containsPeek = false
         for (appForUrl in mAppsForUrl) {
             if (appForUrl.mResolveInfo != null
                     && appForUrl.mResolveInfo!!.activityInfo != null
                     && appForUrl.mResolveInfo!!.activityInfo.packageName == BuildConfig.APPLICATION_ID) {
-                containsLinkBubble = true
+                containsPeek = true
                 break
             }
         }
 
-        if (containsLinkBubble == false) {
-            mAppsForUrl.add(AppForUrl(Settings.get().mLinkBubbleEntryActivityResolveInfo, url))
+        if (containsPeek == false) {
+            mAppsForUrl.add(AppForUrl(Settings.get().mPeekEntryActivityResolveInfo, url))
         }
     }
 
@@ -2020,17 +1990,13 @@ class ContentView @JvmOverloads constructor(
         mOverflowButton.setIsTouched(false)
     }
 
-    private fun openInBrowser(urlAsString: String, braveBrowser: Boolean): Boolean {
-        return openInBrowser(urlAsString, false, braveBrowser)
-    }
-
-    private fun openInBrowser(urlAsString: String, canShowUndoPrompt: Boolean, braveBrowser: Boolean): Boolean {
+    private fun openInBrowser(urlAsString: String, canShowUndoPrompt: Boolean = false): Boolean {
         Log.d(TAG, "ContentView.openInBrowser() - url:$urlAsString")
         CrashTracking.log("ContentView.openInBrowser()")
         val intent = Intent(Intent.ACTION_VIEW)
         intent.data = Uri.parse(urlAsString)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-        if (MainApplication.openInBrowser(context, intent, true, braveBrowser) && MainController.get() != null && mOwnerTabView != null) {
+        if (MainApplication.openInBrowser(context, intent, true) && MainController.get() != null && mOwnerTabView != null) {
             MainController.get()!!.closeTab(mOwnerTabView, MainController.get()!!.contentViewShowing(), canShowUndoPrompt)
             // L_WATCH: L currently lacks getRecentTasks(), so minimize here
             if (Build.VERSION.SDK_INT > Build.VERSION_CODES.KITKAT) {
@@ -2100,8 +2066,6 @@ class ContentView @JvmOverloads constructor(
 
         if (urlAsString == Constant.NEW_TAB_URL) {
             mUrlTextView.text = null
-        } else if (urlAsString == Constant.WELCOME_MESSAGE_URL) {
-            mUrlTextView.text = Constant.WELCOME_MESSAGE_DISPLAY_URL
         } else {
             mUrlTextView.text = urlAsString.replace("http://", "")
             if (!showTitleUrl) {

@@ -153,11 +153,8 @@
     <string name="add_domain_error">Unable to add \"%1$s\", as it is not a valid URL host.</string>
 
     <string name="preference_help_title">Help</string>
-    <string name="preference_show_welcome_message_title">Show welcome page</string>
     <string name="preference_credits_title">Credits</string>
     <string name="preference_osl_title">Open source licenses</string>
-    <string name="preference_privacy_policy_title">Privacy Policy</string>
-    <string name="preference_terms_of_service_title">Terms of Service</string>
     <string name="preference_say_thanks_title">Say thanks!</string>
     <string name="preference_say_thanks_summary">Enjoying Peek? Please consider leaving a Play Store review.</string>
     <string name="preference_version_title">Version</string>
@@ -316,8 +313,7 @@
     <string name="content_description_settings">Settings</string>
     <string name="content_description_can_go_back">Can go back</string>
 
-    <string name="accept_terms_and_privacy"><![CDATA[By continuing, you acknowledge that you accept the Peek
-    <a href="https://brave.com/terms_of_use">terms</a> and <a href="https://brave.com/privacy_android">privacy policy</a>.]]></string>
+    <string name="accept_terms_and_privacy">By continuing, you acknowledge that this app runs as a floating bubble with permission to display over other apps, and that links you open are loaded in its browser view.</string>
 
     <string name="service_name">Peek Renderer</string>
     <string name="notification_title">Peek</string>
@@ -359,7 +355,7 @@
     <string name="http_prefix">http://</string>
     <string name="https_prefix">https://</string>
     <string name="www_prefix">www.</string>
-    <string name="duckduckgo_search_engine">https://duckduckgo.com/?q=%1$s&amp;t=brave</string>
+    <string name="duckduckgo_search_engine">https://duckduckgo.com/?q=%1$s&amp;t=peek</string>
     <string name="google_search_engine">http://www.google.com/search?q=</string>
     <string name="yahoo_search_engine">http://search.yahoo.com/search?p=</string>
     <string name="amazon_search_engine">http://www.amazon.com/s/field-keywords=</string>
@@ -376,10 +372,6 @@
     <string name="adprivacy_url">https://easylist.to/easylist/easyprivacy.txt</string>
     <string name="adprivacy_localfilename">easyprivacy.txt</string>
     <string name="whitelist_localfilename">whitelist.dat</string>
-    <string name="tab_based_browser_id_name">com.brave.browser</string>
-    <string name="tab_based_browser_name">Brave</string>
-    <string name="tab_based_browser_notification_title">Try the New Brave Browser!</string>
-    <string name="tab_based_browser_notification_text">Tabs, shields, ad blocking, customization and more!</string>
 
     <string name="grant_overlay_permission_message">Peek needs permission to display over other apps to show the bubble. Tap below to grant it.</string>
     <string name="grant_overlay_permission_button">Open Settings</string>

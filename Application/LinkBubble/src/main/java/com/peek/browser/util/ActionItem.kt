@@ -112,7 +112,7 @@ class ActionItem(
                     // Filter out system apps.
                     val eachIntent = packageManager.getLaunchIntentForPackage(packageInfo.packageName) ?: continue
 
-                    // Ignore LinkBubble from this list
+                    // Ignore this app itself from this list
                     if (Util.isValidBrowserPackageName(packageInfo.packageName)) {
                         actionItems.add(ActionItem(Constant.ActionType.View,
                                 resources,
@@ -251,7 +251,7 @@ class ActionItem(
                 if (actionItem.mPackageName == context.packageName) {
                     continue
                 }
-                // Set the first non-LinkBubble item as the current selection
+                // Set the first item that isn't this app itself as the current selection
                 listView.tag = i
                 break
             }

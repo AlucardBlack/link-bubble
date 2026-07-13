@@ -457,9 +457,6 @@ class BubbleFlowDraggable @JvmOverloads constructor(
             return
         }
 
-        if (removeFromList == true && tab.getUrl().toString() == Constant.WELCOME_MESSAGE_URL) {
-            Settings.get().setWelcomeMessageDisplayed(true)
-        }
 
         remove(index, animateRemove, removeFromList, mOnTabRemovedListener)
 

@@ -3,5 +3,5 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 (function () {
-  window.LinkBubble.fetchHtml(document.documentElement.outerHTML, String(window.location));
+  window.Peek.fetchHtml(document.documentElement.outerHTML, String(window.location));
 })();

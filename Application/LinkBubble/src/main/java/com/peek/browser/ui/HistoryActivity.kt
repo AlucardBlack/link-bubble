@@ -267,7 +267,7 @@ class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, Ad
                     val intent = Intent(Intent.ACTION_VIEW)
                     intent.data = Uri.parse(urlAsString)
                     intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-                    MainApplication.openInBrowser(this@HistoryActivity, intent, true, false)
+                    MainApplication.openInBrowser(this@HistoryActivity, intent, true)
                 } else if (string == shareLabel) {
                     val alertDialog = ActionItem.getShareAlert(this@HistoryActivity, false, object : ActionItem.OnActionItemSelectedListener {
                         override fun onSelected(actionItem: ActionItem) {

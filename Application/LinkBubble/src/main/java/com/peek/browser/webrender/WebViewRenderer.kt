@@ -380,12 +380,7 @@ class WebViewRenderer(context: Context, controller: Controller, webRendererPlace
             // Inject page scripts after there has been some progress, otherwise they get injected into an empty page.
             if (mCurrentProgress >= 60 && mRunPageScripts == 0) {
                 mRunPageScripts = 1
-                try {
-                    val currentUrl = URL(webView.url)
-                    mPageInspector.run(webView, mController.adInsertionList(currentUrl.host.replace("www.", "").replace("m.", "")))
-                } catch (exc: MalformedURLException) {
-                    exc.printStackTrace()
-                }
+                mPageInspector.run(webView)
             }
 
             if (mCurrentProgress == 100 && mPauseOnComplete) {
@@ -695,8 +690,8 @@ class WebViewRenderer(context: Context, controller: Controller, webRendererPlace
         mPageInspector.reset()
     }
 
-    override fun runPageInspector(adInsert: String?) {
-        mPageInspector.run(mWebView, adInsert)
+    override fun runPageInspector() {
+        mPageInspector.run(mWebView)
     }
 
 

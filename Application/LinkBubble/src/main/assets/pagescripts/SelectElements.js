@@ -3,10 +3,10 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 (function () {
-  if (window.LinkBubble.selectOption) { return; }
-  window.LinkBubble.lastSelectFocused = null;
-  window.LinkBubble.selectOption = function (index) {
-    var select = window.LinkBubble.lastSelectFocused;
+  if (window.Peek.selectOption) { return; }
+  window.Peek.lastSelectFocused = null;
+  window.Peek.selectOption = function (index) {
+    var select = window.Peek.lastSelectFocused;
     select.selectedIndex = index;
     select.previousElementSibling.textContent = select[index].text;
   };
@@ -14,7 +14,7 @@
   var els = document.getElementsByTagName('select');
   function maskSelects () {
     /* Remove all previous select masks if the next element is not a select any longer. */
-    Array.prototype.forEach.call(document.querySelectorAll('.__link_bubble__select_mask__'), function (mask) {
+    Array.prototype.forEach.call(document.querySelectorAll('.__peek__select_mask__'), function (mask) {
       if (mask.nextElementSibling && mask.nextElementSibling.nodeName.toLowerCase() === 'select') { return; }
       mask.parentNode.removeChild(mask);
     });
@@ -22,9 +22,9 @@
     Array.prototype.forEach.call(els, function (select) {
       var mask = select.previousElementSibling;
       /* Insert and style for new selects */
-      if (!mask || mask.className !== '__link_bubble__select_mask__') {
+      if (!mask || mask.className !== '__peek__select_mask__') {
         mask = document.createElement('div');
-        mask.className = '__link_bubble__select_mask__';
+        mask.className = '__peek__select_mask__';
         mask.style.webkitAppearance = 'menulist';
         var computedStyle = window.getComputedStyle(select);
 
@@ -37,13 +37,13 @@
 
         mask.addEventListener('click', function (e) {
           e.preventDefault();
-          window.LinkBubble.lastSelectFocused = select;
+          window.Peek.lastSelectFocused = select;
           var keyAndValues = [select.selectedIndex];
           for (var i = 0; i < select.length; i++) {
             keyAndValues.push(select[i].text);
             keyAndValues.push(select[i].value);
           }
-          window.LinkBubble.onSelectElementInteract(JSON.stringify(keyAndValues));
+          window.Peek.onSelectElementInteract(JSON.stringify(keyAndValues));
         });
       }
       mask.textContent = select[select.selectedIndex].text;

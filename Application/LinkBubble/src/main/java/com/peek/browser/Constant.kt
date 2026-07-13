@@ -55,9 +55,6 @@ object Constant {
 
     const val DESIRED_FAVICON_SIZE = 96
 
-    const val WELCOME_MESSAGE_URL = "https://brave.com/brave_android_welcome.html"
-    const val WELCOME_MESSAGE_DISPLAY_URL = "brave.com/brave_android_welcome"
-
     // When opening a link in a new tab, there is no reliable way to get the link to be loaded. Use this guy
     // so we can determine when this is occurring, and not pollute the history. #280
     const val NEW_TAB_URL = "http://ishouldbeusedbutneverseen55675.com"
@@ -67,9 +64,6 @@ object Constant {
     const val TOUCH_ICON_MAX_SIZE = 256
 
     const val EMPTY_WEBVIEW_CACHE_INTERVAL = 7 * 24 * 60 * 60 * 1000
-
-    const val PRIVACY_POLICY_URL = "https://brave.com/privacy_android"
-    const val TERMS_OF_SERVICE_URL = "https://brave.com/terms_of_use"
 
     const val DEBUG_SHOW_TARGET_REGIONS = false
 

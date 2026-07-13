@@ -85,19 +85,13 @@ class EntryActivity : Activity() {
             }
 
             if (canLoadFromThisApp == false) {
-                MainApplication.openInBrowser(this, intent, true, false)
+                MainApplication.openInBrowser(this, intent, true)
             } else if (openLink) {
                 MainApplication.checkRestoreCurrentTabs(this)
 
-                if (Settings.get().getWelcomeMessageDisplayed() == false) {
-                    if (!(MainController.get() != null && MainController.get()!!.isUrlActive(Constant.WELCOME_MESSAGE_URL))) {
-                        MainApplication.openLink(this, Constant.WELCOME_MESSAGE_URL, null)
-                    }
-                }
-
                 MainApplication.openLink(this, url, true, openedFromAppName)
             } else {
-                MainApplication.openInBrowser(this, intent, true, false)
+                MainApplication.openInBrowser(this, intent, true)
             }
         } else {
             startActivityForResult(Intent(this, HomeActivity::class.java), 0)

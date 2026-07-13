@@ -90,16 +90,6 @@ class HomeActivity : AppCompatActivity() {
         checkNotificationPermission()
         checkLegacyStoragePermission()
 
-        if (!Settings.get().getWelcomeMessageDisplayed()) {
-            var showWelcomeUrl = true
-            if (MainController.get() != null && MainController.get()!!.isUrlActive(Constant.WELCOME_MESSAGE_URL)) {
-                showWelcomeUrl = false
-            }
-            if (showWelcomeUrl) {
-                MainApplication.openLink(this, Constant.WELCOME_MESSAGE_URL, null)
-            }
-        }
-
         if (Settings.get().debugAutoLoadUrl()) {
             MainApplication.openLink(this, "file:///android_asset/test.html", null)
         }

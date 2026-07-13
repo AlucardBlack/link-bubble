@@ -115,8 +115,6 @@ object Util {
             "com.lastpass.lpandroid",
             "com.peek.browser.playstore",
             "com.peek.browser.playstore.dev",
-            "com.brave.playstore",          // Made that temporary(remove when merge to master)
-            "com.brave.playstore.dev",       // Made that temporary(remove when merge to master)
             "arun.com.chromer",
             "com.jiubang.browser",
             "com.uc.browser.hd",
@@ -397,7 +395,7 @@ object Util {
     }
 
     @JvmStatic
-    fun isLinkBubbleResolveInfo(resolveInfo: ResolveInfo?): Boolean {
+    fun isPeekResolveInfo(resolveInfo: ResolveInfo?): Boolean {
         if (resolveInfo != null
                 && resolveInfo.activityInfo != null
                 && resolveInfo.activityInfo.packageName == BuildConfig.APPLICATION_ID) {
@@ -667,8 +665,6 @@ object Util {
             return false
         }
         if (BuildConfig.APPLICATION_ID.contains("com.peek.browser") && packageName.contains("com.peek.browser")) {
-            return false
-        } else if (BuildConfig.APPLICATION_ID.contains("com.brave.playstore") && packageName.contains("com.brave.playstore")) {
             return false
         }
 

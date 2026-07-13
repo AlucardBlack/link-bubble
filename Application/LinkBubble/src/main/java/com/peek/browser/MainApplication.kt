@@ -8,7 +8,6 @@ import android.app.AlertDialog
 import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -22,16 +21,13 @@ import android.net.Uri
 import android.os.AsyncTask
 import android.os.Vibrator
 import android.widget.Toast
-import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.google.android.material.color.DynamicColors
 import com.peek.browser.Constant.BubbleAction
 import com.peek.browser.adblock.ABPFilterParser
 import com.peek.browser.adblock.WhiteListCollector
-import com.peek.browser.adinsert.AdInserter
 import com.peek.browser.db.DatabaseHelper
 import com.peek.browser.db.HistoryRecord
-import com.peek.browser.ui.NotificationNewBraveBrowserActivity
 import com.peek.browser.ui.Prompt
 import com.peek.browser.ui.SearchURLSuggestionsContainer
 import com.peek.browser.ui.SettingsActivity
@@ -50,11 +46,7 @@ import java.util.concurrent.ConcurrentHashMap
 class MainApplication : Application() {
 
     private var mABPParser: ABPFilterParser? = null
-    private var mADInserter: AdInserter? = null
     private var mWhiteListCollector: WhiteListCollector? = null
-
-    @JvmField
-    var mAdInserterEnabled = false
 
     @JvmField
     var mIconCache: IconCache? = null
@@ -88,51 +80,11 @@ class MainApplication : Application() {
         if (Settings.get().isAdBlockEnabled) {
             EventBus.post(SettingsMoreActivity.AdBlockTurnOnEvent())
         }
-        // Enable ad insertion for Crashlytics builds and disable for play store builds
-        val appInfo = applicationInfo
-        if (appInfo.packageName == "com.brave.playstore" || appInfo.packageName == "com.brave.playstore.dev") {
-            mAdInserterEnabled = true
-            DownloadAdInsertionDataAsyncTask().execute()
-        }
         InitWhiteListCollectorAsyncTask().execute()
-
-
-        val settings = Settings.get()
-        if (null != settings && settings.showNewBraveBrowserNotification()) {
-            // Check if there is a new Brave Browser already installed
-            val browsersPackageNames = settings.getBrowserPackageNames()
-            if (null != browsersPackageNames && !browsersPackageNames.contains(resources.getString(R.string.tab_based_browser_id_name))) {
-                showNewBraveBrowserHiddenNotification()
-            }
-        }
 
         CrashTracking.log("MainApplication.onCreate()")
         //WebView.setWebContentsDebuggingEnabled(true);
         //checkStrings();
-    }
-
-    private fun showNewBraveBrowserHiddenNotification() {
-        val resultIntent = Intent(this, NotificationNewBraveBrowserActivity::class.java)
-        resultIntent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED or Intent.FLAG_ACTIVITY_NEW_TASK
-        val resultPendingIntent =
-                PendingIntent.getActivity(
-                        this,
-                        0,
-                        resultIntent,
-                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-
-        val builder = NotificationCompat.Builder(this, Constant.NOTIFICATION_CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_stat)
-                .setContentTitle(resources.getString(R.string.tab_based_browser_notification_title))
-                .setContentText(resources.getString(R.string.tab_based_browser_notification_text))
-                .setAutoCancel(true)
-                .setContentIntent(resultPendingIntent)
-
-        // Gets an instance of the NotificationManager service
-        val notifyMgr =
-                getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-        // Builds the notification and issues it.
-        notifyMgr.notify(NotificationNewBraveBrowserActivity.NOTIFICATION_ID, builder.build())
     }
 
     inner class InitWhiteListCollectorAsyncTask : AsyncTask<Void, Void, Long>() {
@@ -163,16 +115,6 @@ class MainApplication : Application() {
 
     fun getABPParser(): ABPFilterParser? {
         return mABPParser
-    }
-
-    fun createAdInsertionList() {
-        if (null == mADInserter) {
-            mADInserter = AdInserter(this)
-        }
-    }
-
-    fun getAdInserter(): AdInserter? {
-        return mADInserter
     }
 
     /**
@@ -220,12 +162,6 @@ class MainApplication : Application() {
         DownloadAdBlockDataAsyncTask().execute()
     }
 
-    inner class DownloadAdInsertionDataAsyncTask : AsyncTask<Void, Void, Long>() {
-        override fun doInBackground(vararg params: Void): Long? {
-            createAdInsertionList()
-            return null
-        }
-    }
     /*
     private void checkStrings() {
         String blerg = "blerg";
@@ -366,7 +302,7 @@ class MainApplication : Application() {
         }
 
         @JvmStatic
-        fun openInBrowser(context: Context, intent: Intent, showToastIfNoBrowser: Boolean, braveBrowser: Boolean): Boolean {
+        fun openInBrowser(context: Context, intent: Intent, showToastIfNoBrowser: Boolean): Boolean {
             var activityStarted = false
             val defaultBrowserComponentName = Settings.get().getDefaultBrowserComponentName(context)
             if (defaultBrowserComponentName != null) {
@@ -374,18 +310,6 @@ class MainApplication : Application() {
                 context.startActivity(intent)
                 activityStarted = true
                 CrashTracking.log("MainApplication.openInBrowser()")
-            } else if (braveBrowser) {
-                try {
-                    val gpsIntent = Intent(Intent.ACTION_VIEW)
-                    gpsIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-                    gpsIntent.data = Uri.parse("market://details?id=" + context.resources.getString(R.string.tab_based_browser_id_name))
-                    context.startActivity(gpsIntent)
-                    activityStarted = true
-                    val settings = Settings.get()
-                    settings?.initiateBrowsersUpdate()
-                } catch (anfe: ActivityNotFoundException) {
-                    CrashTracking.log("MainApplication.openInBrowser() could not open google play")
-                }
             }
 
             if (!activityStarted && showToastIfNoBrowser) {
@@ -399,7 +323,7 @@ class MainApplication : Application() {
             val intent = Intent(Intent.ACTION_VIEW)
             intent.data = Uri.parse(urlAsString)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            return openInBrowser(context, intent, showToastIfNoBrowser, false)
+            return openInBrowser(context, intent, showToastIfNoBrowser)
         }
 
         @JvmStatic

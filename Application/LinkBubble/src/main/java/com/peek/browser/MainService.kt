@@ -67,7 +67,7 @@ class MainService : Service() {
 
                     for (i in urls.indices) {
                         val urlAsString = urls[i]
-                        if (urlAsString != null && urlAsString != Constant.WELCOME_MESSAGE_URL) {
+                        if (urlAsString != null) {
                             var setAsCurrentTab = false
                             if (startOpenTabCount == 0) {
                                 setAsCurrentTab = i == urls.size - 1

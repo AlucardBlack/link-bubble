@@ -58,7 +58,7 @@ class PageInspector(
         webView.addJavascriptInterface(mJSEmbedHandler, JS_VARIABLE)
     }
 
-    fun run(webView: WebView, adInsert: String?) {
+    fun run(webView: WebView) {
         mWebViewUrl = webView.url
 
         if (mScriptCache == null) {
@@ -80,11 +80,6 @@ class PageInspector(
         }
 
         var scriptToExecute = mScriptCache!!
-
-        if (null != adInsert && adInsert != "") {
-            scriptToExecute += "\nvar adInfoObject = $adInsert;\n"
-            scriptToExecute += getFileContents("AddInsertion")
-        }
 
         scriptToExecute += "}());"
 
@@ -252,7 +247,7 @@ class PageInspector(
                 dialog.dismiss()
 
                 mHandler.postDelayed({
-                    mWebView.loadUrl("javascript:LinkBubble.selectOption($position)")
+                    mWebView.loadUrl("javascript:Peek.selectOption($position)")
                 }, 1)
             })
             val dialog = builder.create()
@@ -328,7 +323,7 @@ class PageInspector(
     companion object {
         private const val TAG = "PageInspector"
 
-        private const val JS_VARIABLE = "LinkBubble"
+        private const val JS_VARIABLE = "Peek"
         private const val UNKNOWN_TAG = "unknown"        // the tag Chrome/WebView uses for unknown elements
 
         private const val MAX_FAVICON_ENTRIES = 4

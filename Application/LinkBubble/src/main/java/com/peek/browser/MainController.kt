@@ -724,9 +724,9 @@ class MainController private constructor(context: Context, eventHandler: EventHa
             return false
         }
 
-        val isLinkBubble = resolveInfo.activityInfo != null
+        val isPeek = resolveInfo.activityInfo != null
                 && resolveInfo.activityInfo.packageName == mAppPackageName
-        if (!isLinkBubble && MainApplication.loadResolveInfoIntent(mContext, resolveInfo, urlAsString, -1)) {
+        if (!isPeek && MainApplication.loadResolveInfoIntent(mContext, resolveInfo, urlAsString, -1)) {
             if (activeTabCount == 0 && !Prompt.isShowing()) {
                 finish()
             }
@@ -767,7 +767,7 @@ class MainController private constructor(context: Context, eventHandler: EventHa
             val intent = Intent(Intent.ACTION_VIEW)
             intent.data = Uri.parse(urlAsString)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            if (MainApplication.openInBrowser(mContext, intent, false, false)) {
+            if (MainApplication.openInBrowser(mContext, intent, false)) {
                 if (activeTabCount == 0 && !Prompt.isShowing()) {
                     finish()
                 }
@@ -798,10 +798,9 @@ class MainController private constructor(context: Context, eventHandler: EventHa
                     return null
                 }
             } else {
-                // If LinkBubble is a valid resolve target, do not show other options to open the content.
+                // If this app itself is a valid resolve target, do not show other options to open the content.
                 for (info in resolveInfos) {
-                    if (info.activityInfo.packageName.startsWith("com.peek.browser.playstore")
-                            || info.activityInfo.packageName.startsWith("com.brave.playstore")) {
+                    if (info.activityInfo.packageName.startsWith("com.peek.browser.playstore")) {
                         showAppPicker = false
                         break
                     } else {

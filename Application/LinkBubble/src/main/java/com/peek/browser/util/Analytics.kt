@@ -16,12 +16,11 @@ object Analytics {
 
     private const val CATEGORY = "Usage"
 
-    const val OPENED_URL_FROM_SETTINGS = "LinkBubble-Settings"
-    const val OPENED_URL_FROM_NEW_TAB = "LinkBubble-NewTab"
-    const val OPENED_URL_FROM_MAIN_NEW_TAB = "LinkBubble-MainNewTab"
-    const val OPENED_URL_FROM_NEW_WINDOW = "LinkBubble-NewWindow"
-    const val OPENED_URL_FROM_RESTORE = "LinkBubble-Restore"
-    const val OPENED_URL_FROM_HISTORY = "LinkBubble-History"
+    const val OPENED_URL_FROM_NEW_TAB = "Peek-NewTab"
+    const val OPENED_URL_FROM_MAIN_NEW_TAB = "Peek-MainNewTab"
+    const val OPENED_URL_FROM_NEW_WINDOW = "Peek-NewWindow"
+    const val OPENED_URL_FROM_RESTORE = "Peek-Restore"
+    const val OPENED_URL_FROM_HISTORY = "Peek-History"
 
     @JvmStatic
     fun trackOpenUrl(openedFromAppName: String?) {

@@ -97,7 +97,7 @@ object Config {
         return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, mDm).toInt()
     }
 
-    const val SET_DEFAULT_BROWSER_URL = "https://brave.com"
+    const val SET_DEFAULT_BROWSER_URL = "https://example.com"
 
     const val YOUTUBE_WATCH_PREFIX = "http://www.youtube.com/watch?v="
     const val YOUTUBE_EMBED_PATH_SUFFIX = "embed/"
