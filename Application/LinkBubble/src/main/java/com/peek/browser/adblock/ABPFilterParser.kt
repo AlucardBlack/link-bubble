@@ -16,15 +16,26 @@ import java.nio.charset.StandardCharsets
 class ABPFilterParser(context: Context) {
 
     private val mBuffer: ByteArray?
-    private val mVerNumber: String
 
     init {
-        mVerNumber = ADBlockUtils.getDataVerNumber(context.getString(R.string.adblock_url))
-        // One time load and parse of the raw EasyList text filter list.
+        // One time load and parse of the raw EasyList text filter list (ad blocking).
+        val verNumber = ADBlockUtils.getDataVerNumber(context.getString(R.string.adblock_url))
         mBuffer = ADBlockUtils.readData(context, context.getString(R.string.adblock_localfilename),
-                context.getString(R.string.adblock_url), ETAG_PREPEND, mVerNumber, false)
+                context.getString(R.string.adblock_url), ETAG_PREPEND, verNumber, false)
         if (mBuffer != null) {
             parseList(String(mBuffer, StandardCharsets.UTF_8))
+        }
+
+        // EasyPrivacy is the same ABP filter syntax as EasyList, just targeting
+        // trackers/analytics instead of ads - parse() is additive (see native
+        // ABPFilterParser::parse()), so this simply adds tracking-protection
+        // coverage to the same engine and the same "Ad Block" toggle, rather than
+        // needing a separate parser/hashset/setting.
+        val privacyVerNumber = ADBlockUtils.getDataVerNumber(context.getString(R.string.adprivacy_url))
+        val privacyBuffer = ADBlockUtils.readData(context, context.getString(R.string.adprivacy_localfilename),
+                context.getString(R.string.adprivacy_url), PRIVACY_ETAG_PREPEND, privacyVerNumber, false)
+        if (privacyBuffer != null) {
+            parseList(String(privacyBuffer, StandardCharsets.UTF_8))
         }
     }
 
@@ -45,5 +56,6 @@ class ABPFilterParser(context: Context) {
         }
 
         private const val ETAG_PREPEND = "abp"
+        private const val PRIVACY_ETAG_PREPEND = "abp_privacy"
     }
 }

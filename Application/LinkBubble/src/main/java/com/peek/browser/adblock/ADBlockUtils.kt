@@ -164,7 +164,14 @@ object ADBlockUtils {
                 // But we do that way, so just wrapped it for now and we will redownload the file on next request
             }
             outputStream.close()
-            if (length != totalReadSize) {
+            // Was `if (length != totalReadSize)` - length comes from the Content-Length header,
+            // which is frequently -1 (unknown/chunked transfer) or reflects a compressed size
+            // HttpURLConnection has already transparently decompressed by the time totalReadSize
+            // is counted, so an exact-match check silently deleted every successful download
+            // (confirmed on-device: easylist.txt/easyprivacy.txt both downloaded correctly -
+            // 2.1MB/1.5MB of real content - length was -1, and the file was deleted right after).
+            // A totalReadSize of 0 is the only case actually worth discarding as a failed fetch.
+            if (totalReadSize == 0) {
                 removeOldVersionFiles(context, fileName)
             }
         } catch (e: MalformedURLException) {

@@ -132,7 +132,7 @@
     <string name="preference_hide_bubbles_summary">Hide Bubbles on scroll down and show on scroll up</string>
     <string name="incognito_mode_changed_reloading_current">Incognito setting changed. Reloading current bubbles…</string>
     <string name="preference_adblock_title">Ad Block</string>
-    <string name="preference_adblock_summary">Prevent ads from loading</string>
+    <string name="preference_adblock_summary">Block ads and trackers</string>
     <string name="preference_block_3p_cookies_title">Block Third Party Cookies</string>
     <string name="preference_block_3p_cookies_summary">Stops some types of tracking by advertisers</string>
     <string name="preference_user_agent_title">User Agent</string>
@@ -373,6 +373,8 @@
     <string name="empty_bubble_page">file:///android_asset/blank.html</string>
     <string name="adblock_url">https://easylist.to/easylist/easylist.txt</string>
     <string name="adblock_localfilename">easylist.txt</string>
+    <string name="adprivacy_url">https://easylist.to/easylist/easyprivacy.txt</string>
+    <string name="adprivacy_localfilename">easyprivacy.txt</string>
     <string name="whitelist_localfilename">whitelist.dat</string>
     <string name="tab_based_browser_id_name">com.brave.browser</string>
     <string name="tab_based_browser_name">Brave</string>
