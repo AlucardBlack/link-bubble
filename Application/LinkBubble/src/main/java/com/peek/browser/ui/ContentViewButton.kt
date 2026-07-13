@@ -5,9 +5,11 @@
 package com.peek.browser.ui
 
 import android.content.Context
+import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.graphics.drawable.RippleDrawable
 import androidx.core.graphics.drawable.DrawableCompat
 import android.util.AttributeSet
 import android.view.MotionEvent
@@ -25,6 +27,7 @@ open class ContentViewButton @JvmOverloads constructor(
     var mIsTouched: Boolean = false
     private var mMaxIconSize: Int = 0
     private val mImageView: ImageView
+    private val mRippleDrawable = RippleDrawable(ColorStateList.valueOf(sTouchedColor), null, null)
 
     private val mButtonOnTouchListener = OnTouchListener { _, event ->
         when (event.action) {
@@ -44,15 +47,21 @@ open class ContentViewButton @JvmOverloads constructor(
         mImageView = ImageView(context)
         mImageView.scaleType = ImageView.ScaleType.CENTER
         addView(mImageView)
+
+        // Real ripple instead of an instant flat-color overlay swap.
+        background = mRippleDrawable
     }
 
     fun setIsTouched(isTouched: Boolean) {
-        if (isTouched && mIsTouched != isTouched) {
-            setBackgroundColor(sTouchedColor)
-            invalidate()
-        } else if (isTouched == false && mIsTouched != isTouched) {
-            setBackgroundColor(0)
-            invalidate()
+        if (mIsTouched != isTouched) {
+            // Drive the ripple's own drawable state directly rather than View.isPressed -
+            // setting isPressed from an OnTouchListener (which runs before the view's own
+            // onTouchEvent) fights the framework's click-detection state machine and can
+            // silently swallow the click on ACTION_UP.
+            mRippleDrawable.state = if (isTouched)
+                intArrayOf(android.R.attr.state_pressed, android.R.attr.state_enabled)
+            else
+                intArrayOf()
         }
 
         mIsTouched = isTouched

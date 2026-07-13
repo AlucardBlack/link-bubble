@@ -35,6 +35,7 @@
             android:dropDownWidth="match_parent"
             android:dropDownAnchor="@+id/content_edit_url"
             android:dropDownSelector="?android:attr/listChoiceBackgroundIndicator"
+            android:popupBackground="@drawable/dropdown_background_light"
             android:inputType="textUri"
             android:layout_gravity="center_vertical"
             android:textIsSelectable="true"
