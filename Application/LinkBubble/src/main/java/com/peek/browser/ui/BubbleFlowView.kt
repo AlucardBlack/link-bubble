@@ -4,6 +4,7 @@
 
 package com.peek.browser.ui
 
+import android.animation.ValueAnimator
 import android.content.Context
 import android.util.AttributeSet
 import android.util.Log
@@ -12,16 +13,12 @@ import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.Animation
-import android.view.animation.Transformation
-import android.view.animation.TranslateAnimation
 import android.widget.FrameLayout
 import android.widget.HorizontalScrollView
 import com.peek.browser.Config
 import com.peek.browser.Constant
 import com.peek.browser.MainController
 import com.peek.browser.util.CrashTracking
-import com.peek.browser.util.TranslateAnimationEx
 import com.peek.browser.util.Util
 import com.peek.browser.util.VerticalGestureListener
 import java.util.ArrayList
@@ -243,17 +240,19 @@ open class BubbleFlowView @JvmOverloads constructor(
         updateScales(scrollX)
 
         if (insertNextToCenterItem) {
-            val slideOnAnim = TranslateAnimation(0f, 0f, (-mItemHeight).toFloat(), 0f)
-            slideOnAnim.duration = Constant.BUBBLE_FLOW_ANIM_TIME.toLong()
-            slideOnAnim.fillAfter = true
-            view.startAnimation(slideOnAnim)
+            view.translationY = (-mItemHeight).toFloat()
+            view.animate()
+                    .translationY(0f)
+                    .setDuration(Constant.BUBBLE_FLOW_ANIM_TIME.toLong())
+                    .start()
 
             for (i in centerIndex + 2 until mViews.size) {
                 val viewToShift = mViews[i]
-                val slideRightAnim = TranslateAnimation((-mItemWidth).toFloat(), 0f, 0f, 0f)
-                slideRightAnim.duration = Constant.BUBBLE_FLOW_ANIM_TIME.toLong()
-                slideRightAnim.fillAfter = true
-                viewToShift.startAnimation(slideRightAnim)
+                viewToShift.translationX = (-mItemWidth).toFloat()
+                viewToShift.animate()
+                        .translationX(0f)
+                        .setDuration(Constant.BUBBLE_FLOW_ANIM_TIME.toLong())
+                        .start()
             }
         }
 
@@ -282,41 +281,39 @@ open class BubbleFlowView @JvmOverloads constructor(
             if (removeFromList == false) {
                 throw RuntimeException("removeFromList must be true if animating off")
             }
-            val slideOffAnim = TranslateAnimation(0f, 0f, 0f, (-mItemHeight).toFloat())
-            slideOffAnim.duration = Constant.BUBBLE_FLOW_ANIM_TIME.toLong()
-            slideOffAnim.fillAfter = true
-            slideOffAnim.setAnimationListener(object : Animation.AnimationListener {
-                override fun onAnimationStart(animation: Animation) {
 
-                }
+            // Populated below, but captured by reference into the withEndAction closure now -
+            // by the time that closure actually runs (asynchronously, after the animation
+            // completes), the list has already been filled in synchronously further down.
+            val shiftAnimators = ArrayList<ValueAnimator>()
 
-                override fun onAnimationEnd(animation: Animation) {
-                    mContent.removeView(view)
-
-                    // Cancel the current animation on the views so the offset no longer applies
-                    for (i in mViews.indices) {
-                        val v = mViews[i]
-                        val viewAnimation = v.animation
-                        if (viewAnimation != null) {
-                            viewAnimation.cancel()
-                            v.animation = null
-                        }
-                    }
-                    updatePositions()
-                    updateScales(scrollX)
-                    mSlideOffAnimationPlaying = false
-
-                    if (onRemovedListener != null) {
-                        onRemovedListener.onRemoved(view)
-                    }
-                }
-
-                override fun onAnimationRepeat(animation: Animation) {
-
-                }
-            })
             invalidate()       // This fixes #284 - it's a hack, but it will do for now.
-            view.startAnimation(slideOffAnim)
+            view.animate()
+                    .translationY((-mItemHeight).toFloat())
+                    .setDuration(Constant.BUBBLE_FLOW_ANIM_TIME.toLong())
+                    .withEndAction {
+                        mContent.removeView(view)
+
+                        // Cancel any still-in-flight animation on the views so the offset no
+                        // longer applies. Property values persist after an animation ends
+                        // (unlike the old fillAfter Animation, which was wiped by
+                        // clearAnimation()), so this must be explicit.
+                        for (shiftAnimator in shiftAnimators) {
+                            shiftAnimator.cancel()
+                        }
+                        for (i in mViews.indices) {
+                            val v = mViews[i]
+                            v.animate().cancel()
+                            v.translationX = 0f
+                            v.translationY = 0f
+                        }
+                        updatePositions()
+                        updateScales(scrollX)
+                        mSlideOffAnimationPlaying = false
+
+                        onRemovedListener?.onRemoved(view)
+                    }
+                    .start()
             mSlideOffAnimationPlaying = true
 
             mViews.remove(view)
@@ -324,29 +321,11 @@ open class BubbleFlowView @JvmOverloads constructor(
             val viewsSize = mViews.size
             if (index < viewsSize) {
                 for (i in index until viewsSize) {
-                    val viewToShift = mViews[i]
-                    val slideAnim = TranslateAnimationEx(0f, (-mItemWidth).toFloat(), 0f, 0f, object : TranslateAnimationEx.TransformationListener {
-                        override fun onApplyTransform(interpolatedTime: Float, t: Transformation, dx: Float, dy: Float) {
-                            val centerX = scrollX + (mWidth / 2) - (mItemWidth / 2)
-                            updateScaleForView(viewToShift, centerX.toFloat(), viewToShift.x + dx)
-                        }
-                    })
-                    slideAnim.duration = Constant.BUBBLE_FLOW_ANIM_TIME.toLong()
-                    slideAnim.fillAfter = true
-                    viewToShift.startAnimation(slideAnim)
+                    shiftAnimators.add(animateShift(mViews[i], (-mItemWidth).toFloat()))
                 }
             } else if (viewsSize > 0) {
                 for (i in 0 until index) {
-                    val viewToShift = mViews[i]
-                    val slideAnim = TranslateAnimationEx(0f, mItemWidth.toFloat(), 0f, 0f, object : TranslateAnimationEx.TransformationListener {
-                        override fun onApplyTransform(interpolatedTime: Float, t: Transformation, dx: Float, dy: Float) {
-                            val centerX = scrollX + (mWidth / 2) - (mItemWidth / 2)
-                            updateScaleForView(viewToShift, centerX.toFloat(), viewToShift.x + dx)
-                        }
-                    })
-                    slideAnim.duration = Constant.BUBBLE_FLOW_ANIM_TIME.toLong()
-                    slideAnim.fillAfter = true
-                    viewToShift.startAnimation(slideAnim)
+                    shiftAnimators.add(animateShift(mViews[i], mItemWidth.toFloat()))
                 }
             }
         } else {
@@ -361,6 +340,25 @@ open class BubbleFlowView @JvmOverloads constructor(
                 onRemovedListener.onRemoved(view)
             }
         }
+    }
+
+    // Shifts a view horizontally by dx, recalculating its scale every frame based on its live
+    // (translated) x position - replaces the old TranslateAnimationEx's per-frame
+    // onApplyTransform callback. The view's real layout position (LayoutParams.leftMargin)
+    // doesn't change until updatePositions() runs at slide-off's withEndAction, so the scale
+    // recalculation must be driven from the view's current visual x (view.x already includes
+    // the live translationX set below, unlike the legacy matrix-transform approach where
+    // view.x excluded the animation's own offset and had to have dx added back in manually).
+    private fun animateShift(view: View, dx: Float): ValueAnimator {
+        val animator = ValueAnimator.ofFloat(0f, dx)
+        animator.duration = Constant.BUBBLE_FLOW_ANIM_TIME.toLong()
+        animator.addUpdateListener {
+            view.translationX = it.animatedValue as Float
+            val centerX = scrollX + (mWidth / 2) - (mItemWidth / 2)
+            updateScaleForView(view, centerX.toFloat(), view.x)
+        }
+        animator.start()
+        return animator
     }
 
     fun updatePositions() {
@@ -479,27 +477,15 @@ open class BubbleFlowView @JvmOverloads constructor(
             val view = mViews[i]
             if (centerView !== view) {
                 val xOffset = (centerView.x - ((i * mItemWidth) + mEdgeMargin)).toInt()
-                val anim = TranslateAnimation(xOffset.toFloat(), 0f, 0f, 0f)
-                anim.duration = time
-                anim.fillAfter = true
+                view.translationX = xOffset.toFloat()
+                val animator = view.animate().translationX(0f).setDuration(time)
                 if (addedAnimationListener == false) {
-                    anim.setAnimationListener(object : Animation.AnimationListener {
-                        override fun onAnimationStart(animation: Animation) {
-                        }
-
-                        override fun onAnimationEnd(animation: Animation) {
-                            if (animationEventListener != null) {
-                                animationEventListener.onAnimationEnd(this@BubbleFlowView)
-                            }
-                        }
-
-                        override fun onAnimationRepeat(animation: Animation) {
-
-                        }
-                    })
+                    animator.withEndAction {
+                        animationEventListener?.onAnimationEnd(this@BubbleFlowView)
+                    }
                     addedAnimationListener = true
                 }
-                view.startAnimation(anim)
+                animator.start()
             }
         }
 
@@ -515,7 +501,9 @@ open class BubbleFlowView @JvmOverloads constructor(
     }
 
     private fun bringTabViewToFront(tabView: View) {
-        tabView.clearAnimation()
+        tabView.animate().cancel()
+        tabView.translationX = 0f
+        tabView.translationY = 0f
         tabView.bringToFront()
         mContent.requestLayout()
         mContent.invalidate()
