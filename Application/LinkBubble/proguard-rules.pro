@@ -165,6 +165,15 @@
    public static final ** CREATOR;
 }
 
+# ABPFilterParser's JNI methods (main.cpp) are bound via automatic name-mangled
+# linking (Java_com_peek_browser_adblock_ABPFilterParser_parseList/_shouldBlock),
+# not RegisterNatives, so the class and native method names must survive
+# obfuscation exactly or the native symbol lookup breaks at runtime.
+-keepclasseswithmembernames,includedescriptorclasses class * {
+    native <methods>;
+}
+-keep class com.peek.browser.adblock.ABPFilterParser { *; }
+
 # If your application seems to fail due to the optimization or obfuscation
 # in release builds, you can verify that by selectively disabling any of the
 # processing steps. You may then need to add some additional configuration
